@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Informações - PAX União</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="./comum.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+        body { background-color: #fdfaf5; display: flex; justify-content: center; }
+        .app-container { width: 100%; max-width: 412px; height: 100vh; background-color: white; display: flex; flex-direction: column; position: relative; }
+
+        .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; color: #1a237e; }
+        .top-bar i { font-size: 20px; cursor: pointer; }
+        .version-text { font-size: 12px; color: #999; }
+
+        .brand-section { display: flex; flex-direction: column; align-items: center; padding: 10px 0 25px 0; background: linear-gradient(to bottom, #ffffff, #f0f4f8); }
+        .logo-placeholder { width: 80px; height: 80px; background-color: #1a237e; border-radius: 20px; display: flex; align-items: center; justify-content: center; margin-bottom: 15px; box-shadow: 0 4px 10px rgba(26, 35, 126, 0.2); }
+        .logo-placeholder i { color: white; font-size: 40px; }
+        .company-name { font-size: 18px; font-weight: bold; color: #1a237e; }
+        .cnpj { font-size: 13px; color: #777; margin-top: 4px; }
+
+        .tabs { display: flex; border-bottom: 1px solid #eee; }
+        .tab-item { flex: 1; text-align: center; padding: 15px; color: #888; font-size: 15px; cursor: pointer; position: relative; transition: 0.3s; }
+        .tab-item.active { color: #1a237e; font-weight: bold; }
+        .tab-item.active::after { content: ""; position: absolute; bottom: 0; left: 20%; width: 60%; height: 3px; background-color: #1a237e; border-radius: 3px 3px 0 0; }
+
+        .info-content { flex: 1; padding: 20px; overflow-y: auto; padding-bottom: 90px; }
+        .content-section { display: none; }
+        .content-section.active { display: block; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .info-card { background-color: #f8f9fa; border-radius: 15px; padding: 20px; display: flex; align-items: center; gap: 15px; margin-bottom: 15px; border: 1px solid #eef2f7; }
+        .info-card i { font-size: 20px; color: #1a237e; background: white; padding: 12px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .info-text { display: flex; flex-direction: column; }
+        .info-label { font-size: 12px; color: #888; text-transform: uppercase; margin-bottom: 2px; }
+        .info-value { font-size: 15px; color: #333; font-weight: 500; }
+
+        .social-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 10px; }
+        .social-btn { display: flex; flex-direction: column; align-items: center; gap: 8px; font-size: 11px; color: #1a237e; text-decoration: none; }
+        .social-btn i { font-size: 24px; }
+
+        /* Bottom Nav Padronizado */
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; max-width: 412px; display: flex; justify-content: space-around; padding: 10px 0; border-top: 1px solid #eee; background: white; z-index: 1000; }
+        .nav-item { text-align: center; color: #888; font-size: 11px; flex: 1; cursor: pointer; display: flex; flex-direction: column; align-items: center; }
+        .nav-item.active { color: #1a237e; font-weight: 600; }
+        .nav-icon-container { padding: 8px 20px; border-radius: 12px; margin-bottom: 2px; transition: 0.2s; }
+        .nav-item.active .nav-icon-container { background-color: #1a237e; color: white; }
+        .nav-item i { font-size: 18px; }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <div class="top-bar">
+        <i class="fa-solid fa-arrow-left" onclick="window.history.back()"></i>
+        <span class="version-text">Versão 1.4.0</span>
+        <i class="fa-solid fa-right-from-bracket" onclick="navega_sair()"></i>
+    </div>
+
+    <div class="brand-section">
+        <div class="logo-placeholder">
+            <i class="fa-solid fa-dove"></i>
+        </div>
+        <h2 class="company-name">FUNERÁRIA PAX UNIÃO</h2>
+        <span class="cnpj">69.403.640/0001-49</span>
+    </div>
+
+    <div class="tabs">
+        <div class="tab-item active" onclick="switchTab(event, 'contato')">Contato</div>
+        <div class="tab-item" onclick="switchTab(event, 'endereco')">Endereço</div>
+    </div>
+
+    <div class="info-content">
+        <div id="contato" class="content-section active">
+            <div class="info-card">
+                <i class="fa-solid fa-phone"></i>
+                <div class="info-text">
+                    <span class="info-label">Telefone</span>
+                    <span class="info-value">(99) 98112-3144</span>
+                </div>
+            </div>
+            <div class="info-card">
+                <i class="fa-solid fa-envelope"></i>
+                <div class="info-text">
+                    <span class="info-label">E-mail</span>
+                    <span class="info-value">atendimento@paxuniao.com</span>
+                </div>
+            </div>
+            <h3 style="font-size: 14px; color: #1a237e; margin: 20px 0 15px;">Redes Sociais</h3>
+            <div class="social-grid">
+                <a href="#" class="social-btn"><i class="fa-brands fa-instagram"></i><span>Instagram</span></a>
+                <a href="#" class="social-btn"><i class="fa-brands fa-whatsapp"></i><span>WhatsApp</span></a>
+                <a href="#" class="social-btn"><i class="fa-brands fa-facebook"></i><span>Facebook</span></a>
+            </div>
+        </div>
+
+        <div id="endereco" class="content-section">
+            <div class="info-card">
+                <i class="fa-solid fa-location-dot"></i>
+                <div class="info-text">
+                    <span class="info-label">Matriz</span>
+                    <span class="info-value">RUA MIGUEL ATTA, N 87</span>
+                    <span class="info-value" style="font-size: 13px; color: #666;">CENTRO - PEDREIRAS - MA</span>
+                </div>
+            </div>
+            <div class="info-card">
+                <i class="fa-solid fa-clock"></i>
+                <div class="info-text">
+                    <span class="info-label">Horário de Funcionamento</span>
+                    <span class="info-value">24 Horas</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <nav class="bottom-nav">
+        <div class="nav-item" onclick="navega_contrato()">
+            <div class="nav-icon-container"><i class="fa-solid fa-file-contract"></i></div>
+            <span>Contrato</span>
+        </div>
+        <div class="nav-item" onclick="navega_carteira()">
+            <div class="nav-icon-container"><i class="fa-solid fa-address-card"></i></div>
+            <span>Carteirinha</span>
+        </div>
+        <div class="nav-item" onclick="navega_conveios()">
+            <div class="nav-icon-container"><i class="fa-solid fa-hospital-user"></i></div>
+            <span>Conveniados</span>
+        </div>
+        <div class="nav-item active" onclick="navega_informacoes()">
+            <div class="nav-icon-container"><i class="fa-solid fa-circle-info"></i></div>
+            <span>Informações</span>
+        </div>
+    </nav>
+</div>
+<script>
+    function switchTab(event, sectionId) {
+        document.querySelectorAll('.tab-item').forEach(tab => tab.classList.remove('active'));
+        event.currentTarget.classList.add('active');
+        document.querySelectorAll('.content-section').forEach(section => section.classList.remove('active'));
+        document.getElementById(sectionId).classList.add('active');
+    }
+</script>
+</body>
+</html>

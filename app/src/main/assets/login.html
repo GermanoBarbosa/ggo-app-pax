@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login PAX União</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: #fdfaf5; /* Fundo levemente creme */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .mobile-container {
+            width: 100%;
+            max-width: 400px;
+            height: 100vh;
+            background-color: white;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Seção do Topo/Logo */
+        .header {
+            background-color: #fff6e9;
+            padding: 10px 20px; 
+            margin-top: 10px;
+            text-align: center;
+            flex: 0.2;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .logo-placeholder {
+            width: 235px;
+            height: 60px;
+            background: url('logo.png') no-repeat center;
+            background-size: contain;
+            margin-bottom: 10px;
+        }
+
+        .brand-name {
+            color: #2f3ad3;
+            font-weight: bold;
+            font-size: 22px;
+            margin-bottom: 5px;
+        }
+
+        .version {
+            color: #737be5;
+            font-size: 12px;
+        }
+
+        /* Formulário */
+        .form-container {
+            padding: 30px 25px;
+            flex: 0.6;
+        }
+
+        .input-group {
+            position: relative;
+            margin-bottom: 15px;
+        }
+
+        .input-group i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #555;
+            font-size: 18px;
+        }
+
+        .input-group .eye-icon {
+            left: auto;
+            right: 15px;
+            cursor: pointer;
+        }
+
+        input {
+            width: 100%;
+            padding: 15px 15px 15px 45px;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            background-color: #f0f0f0;
+            font-size: 16px;
+            outline: none;
+        }
+
+        /* Estilo para o campo em foco (borda vermelha como na imagem) */
+        .input-group.active input {
+            border: 2px solid #3a2fd3;
+            background-color: white;
+        }
+
+        /* Toggle Manter Logado */
+        .keep-logged {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            margin: 20px 0;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 45px;
+            height: 24px;
+            margin-left: 10px;
+        }
+
+        .switch input { display: none; }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px; width: 18px;
+            left: 3px; bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider { background-color: rgb(156, 177, 247); }
+        input:checked + .slider:before { 
+            transform: translateX(21px); 
+            background-color: #322fd3;
+        }
+
+        /* Botões */
+        .btn-enter {
+            width: 100%;
+            padding: 15px;
+            background-color: #322fd3;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-bottom: 25px;
+        }
+
+        .footer-links {
+            text-align: center;
+        }
+
+        .btn-link {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 10px;
+            background-color: #f8f8f8;
+            color: #322fd3;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+
+<div class="mobile-container">
+    <div class="header">
+        <div class="logo-placeholder"></div>          
+    </div>
+
+    <div class="form-container">
+        <div class="input-group active">
+            <i class="fa-regular fa-id-card"></i>
+            <input type="text" placeholder="CPF" value="CPF">
+        </div>
+
+        <div class="input-group">
+            <i class="fa-solid fa-key"></i>
+            <input type="password" placeholder="Senha">
+            <i class="fa-regular fa-eye eye-icon"></i>
+        </div>
+
+        <div class="keep-logged">
+            <span>Manter-me logado</span>
+            <label class="switch">
+                <input type="checkbox" checked>
+                <span class="slider"></span>
+            </label>
+        </div>
+
+        <button class="btn-enter" onclick="Login()">Entrar</button>
+
+        <div class="footer-links">
+            <a href="#" class="btn-link">Me Cadastrar</a>
+            <a href="#" class="btn-link">Esqueci minha senha</a>
+        </div>
+    </div>
+</div>
+<script>
+    function Login() {
+        // 'Android' é o nome que definimos no addJavascriptInterface
+        // 'showToast' é o nome da função na classe WebAppInterface
+     //   if(typeof Android !== "undefined") { Android.SalvarCarteirinha(); } 
+     //   else { 
+            window.location.href = "./home.html"; // Redireciona para a página da carteira virtual
+     //    }        
+    }        
+</script>
+</body>
+</html>

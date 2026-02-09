@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meu Contrato - PAX União</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="./comum.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+        body { background-color: white; display: flex; justify-content: center; }
+        .app-container { width: 100%; max-width: 412px; height: 100vh; display: flex; flex-direction: column; position: relative; }
+
+        /* Header */
+        .header { display: flex; align-items: center; padding: 20px; background-color: white; border-bottom: 1px solid #eee; }
+        .header i { font-size: 20px; color: #333; cursor: pointer; padding: 5px; }
+        .header h1 { font-size: 20px; font-weight: 500; margin-left: 20px; }
+
+        /* Tabs Azul */
+        .tabs { display: flex; justify-content: space-around; padding: 10px 0; border-bottom: 1px solid #eee; background: #fff; }
+        .tab-item { font-size: 14px; color: #888; padding: 10px 5px; cursor: pointer; position: relative; }
+        .tab-item.active { color: #1a237e; font-weight: bold; }
+        .tab-item.active::after { content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 3px; background-color: #1a237e; border-radius: 2px; }
+
+        /* Content */
+        .tab-content { flex: 1; padding: 20px; overflow-y: auto; background-color: #fdfaf5; padding-bottom: 90px; }
+        .content-section { display: none; }
+        .content-section.active { display: block; }
+
+        /* Info Cards */
+        .info-card { background: white; border-radius: 15px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .info-item { display: flex; align-items: center; margin-bottom: 15px; }
+        .info-item i { width: 30px; color: #1a237e; font-size: 18px; }
+        .info-text { display: flex; flex-direction: column; }
+        .label { font-size: 12px; color: #888; }
+        .value { font-size: 15px; color: #333; font-weight: 500; }
+        
+        .btn-action { width: 100%; padding: 12px; background: #1a237e; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+
+        /* Bottom Nav Padronizado */
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; max-width: 412px; display: flex; justify-content: space-around; padding: 10px 0; border-top: 1px solid #eee; background: white; z-index: 1000; }
+        .nav-item { text-align: center; color: #888; font-size: 11px; flex: 1; cursor: pointer; display: flex; flex-direction: column; align-items: center; }
+        .nav-item.active { color: #1a237e; font-weight: 600; }
+        .nav-icon-container { padding: 8px 20px; border-radius: 12px; margin-bottom: 2px; transition: 0.2s; }
+        .nav-item.active .nav-icon-container { background-color: #1a237e; color: white; }
+        .nav-item i { font-size: 18px; }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <div class="header">
+        <i class="fa-solid fa-arrow-left" onclick="window.history.back()"></i>
+        <h1>Meu Contrato</h1>
+    </div>
+
+    <div class="tabs">
+        <div class="tab-item active" onclick="switchTab(event, 'dados')">Dados</div>
+        <div class="tab-item" onclick="switchTab(event, 'titular')">Titular</div>
+        <div class="tab-item" onclick="switchTab(event, 'dependentes')">Dependentes</div>
+        <div class="tab-item" onclick="switchTab(event, 'financeiro')">Financeiro</div>
+    </div>
+
+    <div class="tab-content">
+        <div id="dados" class="content-section active">
+            <div class="info-card">
+                <div class="info-item">
+                    <i class="fa-solid fa-hashtag"></i>
+                    <div class="info-text">
+                        <span class="label">Número do Contrato</span>
+                        <span class="value">123456-7</span>
+                    </div>
+                </div>
+                <div class="info-item">
+                    <i class="fa-solid fa-calendar-check"></i>
+                    <div class="info-text">
+                        <span class="label">Data de Adesão</span>
+                        <span class="value">20/03/1998</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="titular" class="content-section">
+            <div class="info-card">
+                <div class="info-item">
+                    <i class="fa-solid fa-user"></i>
+                    <div class="info-text">
+                        <span class="label">Nome Completo</span>
+                        <span class="value">Ivoneide Silva</span>
+                    </div>
+                </div>
+                <div class="info-item">
+                    <i class="fa-solid fa-id-card"></i>
+                    <div class="info-text">
+                        <span class="label">CPF</span>
+                        <span class="value">***.***.***-**</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="dependentes" class="content-section">
+            <div class="info-card">
+                <p style="color: #888; font-size: 14px; text-align: center;">Lista de dependentes ativos no plano.</p>
+            </div>
+        </div>
+
+        <div id="financeiro" class="content-section">
+            <div class="info-card">
+                <div class="info-item">
+                    <i class="fa-solid fa-money-bill-wave"></i>
+                    <div class="info-text">
+                        <span class="label">Situação Financeira</span>
+                        <span class="value" style="color: green;">Regular</span>
+                    </div>
+                </div>
+                <button class="btn-action" onclick="window.location.href='parcelas.html'">Ver Parcelas</button>
+            </div>
+        </div>
+    </div>
+
+    <nav class="bottom-nav">
+        <div class="nav-item active" onclick="navega_contrato()">
+            <div class="nav-icon-container"><i class="fa-solid fa-file-contract"></i></div>
+            <span>Contrato</span>
+        </div>
+        <div class="nav-item" onclick="navega_carteira()">
+            <div class="nav-icon-container"><i class="fa-solid fa-address-card"></i></div>
+            <span>Carteirinha</span>
+        </div>
+        <div class="nav-item" onclick="navega_conveios()">
+            <div class="nav-icon-container"><i class="fa-solid fa-hospital-user"></i></div>
+            <span>Conveniados</span>
+        </div>
+        <div class="nav-item" onclick="navega_informacoes()">
+            <div class="nav-icon-container"><i class="fa-solid fa-circle-info"></i></div>
+            <span>Informações</span>
+        </div>
+    </nav>
+</div>
+<script>
+    function switchTab(event, tabId) {
+        document.querySelectorAll('.tab-item').forEach(tab => tab.classList.remove('active'));
+        document.querySelectorAll('.content-section').forEach(section => section.classList.remove('active'));
+        event.currentTarget.classList.add('active');
+        document.getElementById(tabId).classList.add('active');
+    }
+</script>
+</body>
+</html>

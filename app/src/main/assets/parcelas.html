@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financeiro - PAX União</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="./comum.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+        body { background-color: #f8f9fa; display: flex; justify-content: center; }
+        .app-container { width: 100%; max-width: 412px; background-color: white; min-height: 100vh; display: flex; flex-direction: column; position: relative; }
+
+        .header { display: flex; align-items: center; padding: 20px; }
+        .header i { font-size: 20px; cursor: pointer; }
+        .header h1 { font-size: 20px; font-weight: 500; margin-left: 25px; }
+
+        /* Tabs Azul */
+        .tabs { display: flex; border-bottom: 1px solid #eee; padding: 0 10px; }
+        .tab-item { padding: 12px 15px; color: #999; font-size: 14px; flex: 1; text-align: center; position: relative; cursor: pointer; }
+        .tab-item.active { color: #1a237e; font-weight: bold; }
+        .tab-item.active::after { content: ""; position: absolute; bottom: 0; left: 20%; width: 60%; height: 3px; background-color: #1a237e; border-radius: 3px 3px 0 0; }
+
+        /* Filtros */
+        .filters { display: flex; gap: 10px; padding: 15px; overflow-x: auto; scrollbar-width: none; }
+        .filters::-webkit-scrollbar { display: none; }
+        
+        .badge { 
+            padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 500; 
+            color: #666; background-color: #f0f0f0; border: 1px solid #eee;
+            cursor: pointer; white-space: nowrap; transition: 0.2s;
+        }
+        
+        /* Estados dos Filtros */
+        .badge.active-blue { background-color: #1e88e5; color: white; border-color: #1e88e5; }
+        .badge.active-red { background-color: #ef5350; color: white; border-color: #ef5350; }
+        .badge.active-green { background-color: #43a047; color: white; border-color: #43a047; }
+        .badge.active-dark { background-color: #333; color: white; border-color: #333; }
+
+        /* Lista */
+        .parcela-list { flex: 1; padding: 0 15px 100px 15px; display: flex; flex-direction: column; gap: 12px; }
+        
+        .parcela-card { background-color: #f1f3f8; border-radius: 12px; padding: 15px; position: relative; cursor: pointer; transition: 0.2s; }
+        .parcela-card:active { transform: scale(0.98); }
+        
+        .card-main { display: flex; align-items: center; margin-bottom: 10px; }
+        .status-icon { width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px; margin-right: 15px; }
+        
+        /* Cores de Status */
+        .bg-blue { background-color: #1e88e5; }
+        .bg-red { background-color: #ef5350; }
+        .bg-green { background-color: #43a047; }
+        .text-blue { color: #1e88e5; }
+        .text-red { color: #ef5350; }
+        .text-green { color: #43a047; }
+        
+        .card-details { flex: 1; }
+        .parcela-title { font-size: 16px; font-weight: bold; color: #333; }
+        .parcela-vcto { font-size: 13px; color: #666; margin-top: 2px; }
+        .card-values { text-align: right; padding-right: 25px; }
+        .val-label { font-size: 11px; color: #888; display: block; }
+        .val-text { font-size: 12px; font-weight: 500; margin-bottom: 4px; display: block; }
+        .val-total { font-size: 14px; font-weight: bold; }
+        
+        .arrow-right { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: #ccc; }
+        .card-footer { border-top: 1px solid #dee2e6; padding-top: 8px; display: flex; align-items: center; gap: 8px; font-size: 11px; color: #777; text-transform: uppercase; }
+
+        /* Feedback visual quando a lista está vazia */
+        .empty-state { text-align: center; padding: 40px 20px; color: #888; display: none; }
+        .empty-state i { font-size: 40px; margin-bottom: 10px; color: #ddd; }
+
+        /* Bottom Nav Padronizado */
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; max-width: 412px; display: flex; justify-content: space-around; padding: 10px 0; border-top: 1px solid #eee; background: white; z-index: 1000; }
+        .nav-item { text-align: center; color: #888; font-size: 11px; flex: 1; cursor: pointer; display: flex; flex-direction: column; align-items: center; }
+        .nav-item.active { color: #1a237e; font-weight: 600; }
+        .nav-icon-container { padding: 8px 20px; border-radius: 12px; margin-bottom: 2px; transition: 0.2s; }
+        .nav-item.active .nav-icon-container { background-color: #1a237e; color: white; }
+        .nav-item i { font-size: 18px; }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <div class="header">
+        <i class="fa-solid fa-arrow-left" onclick="window.location.href='contrato.html'"></i>
+        <h1>Meu Contrato</h1>
+    </div>
+
+    <div class="tabs">
+        <div class="tab-item" onclick="window.location.href='contrato.html'">Dados</div>
+        <div class="tab-item" onclick="window.location.href='contrato.html'">Titular</div>
+        <div class="tab-item" onclick="window.location.href='contrato.html'">Dependentes</div>
+        <div class="tab-item active">Financeiro</div>
+    </div>
+
+    <div class="filters">
+        <div class="badge active-dark" onclick="filtrar('todos', this)">Todos</div>
+        <div class="badge" onclick="filtrar('aberto', this)">Em Aberto</div>
+        <div class="badge" onclick="filtrar('vencido', this)">Vencidos</div>
+        <div class="badge" onclick="filtrar('pago', this)">Pagos</div>
+    </div>
+
+    <div class="parcela-list" id="listaParcelas">
+        </div>
+
+    <div id="emptyState" class="empty-state">
+        <i class="fa-regular fa-folder-open"></i>
+        <p>Nenhuma parcela encontrada com este filtro.</p>
+    </div>
+
+    <nav class="bottom-nav">
+        <div class="nav-item active" onclick="navega_contrato()">
+            <div class="nav-icon-container"><i class="fa-solid fa-file-contract"></i></div>
+            <span>Contrato</span>
+        </div>
+        <div class="nav-item" onclick="navega_carteira()">
+            <div class="nav-icon-container"><i class="fa-solid fa-address-card"></i></div>
+            <span>Carteirinha</span>
+        </div>
+        <div class="nav-item" onclick="navega_conveios()">
+            <div class="nav-icon-container"><i class="fa-solid fa-hospital-user"></i></div>
+            <span>Conveniados</span>
+        </div>
+        <div class="nav-item" onclick="navega_informacoes()">
+            <div class="nav-icon-container"><i class="fa-solid fa-circle-info"></i></div>
+            <span>Informações</span>
+        </div>
+    </nav>
+</div>
+
+<script>
+    // Base de dados das Parcelas (25 itens variados)
+    const dadosParcelas = [
+        { id: 26, vencimento: '28/05/2026', valor: '60,00', status: 'aberto', mes: 'MAIO', ano: 2026 },
+        { id: 25, vencimento: '28/04/2026', valor: '60,00', status: 'aberto', mes: 'ABRIL', ano: 2026 },
+        { id: 24, vencimento: '28/03/2026', valor: '60,00', status: 'aberto', mes: 'MARÇO', ano: 2026 },
+        { id: 23, vencimento: '28/02/2026', valor: '60,00', status: 'vencido', mes: 'FEVEREIRO', ano: 2026 },
+        { id: 22, vencimento: '28/01/2026', valor: '60,00', status: 'vencido', mes: 'JANEIRO', ano: 2026 },
+        // Parcelas Pagas (2025)
+        { id: 21, vencimento: '28/12/2025', valor: '60,00', status: 'pago', pgto: '20/12/2025', mes: 'DEZEMBRO', ano: 2025 },
+        { id: 20, vencimento: '28/11/2025', valor: '60,00', status: 'pago', pgto: '22/11/2025', mes: 'NOVEMBRO', ano: 2025 },
+        { id: 19, vencimento: '28/10/2025', valor: '60,00', status: 'pago', pgto: '25/10/2025', mes: 'OUTUBRO', ano: 2025 },
+        { id: 18, vencimento: '28/09/2025', valor: '60,00', status: 'pago', pgto: '28/09/2025', mes: 'SETEMBRO', ano: 2025 },
+        { id: 17, vencimento: '28/08/2025', valor: '60,00', status: 'pago', pgto: '20/08/2025', mes: 'AGOSTO', ano: 2025 },
+        { id: 16, vencimento: '28/07/2025', valor: '60,00', status: 'pago', pgto: '21/07/2025', mes: 'JULHO', ano: 2025 },
+        { id: 15, vencimento: '28/06/2025', valor: '60,00', status: 'pago', pgto: '25/06/2025', mes: 'JUNHO', ano: 2025 },
+        { id: 14, vencimento: '28/05/2025', valor: '55,00', status: 'pago', pgto: '20/05/2025', mes: 'MAIO', ano: 2025 },
+        { id: 13, vencimento: '28/04/2025', valor: '55,00', status: 'pago', pgto: '22/04/2025', mes: 'ABRIL', ano: 2025 },
+        { id: 12, vencimento: '28/03/2025', valor: '55,00', status: 'pago', pgto: '28/03/2025', mes: 'MARÇO', ano: 2025 },
+        // Parcelas Pagas (2024)
+        { id: 11, vencimento: '28/02/2025', valor: '55,00', status: 'pago', pgto: '20/02/2025', mes: 'FEVEREIRO', ano: 2025 },
+        { id: 10, vencimento: '28/01/2025', valor: '55,00', status: 'pago', pgto: '20/01/2025', mes: 'JANEIRO', ano: 2025 },
+        { id: 9, vencimento: '28/12/2024', valor: '55,00', status: 'pago', pgto: '15/12/2024', mes: 'DEZEMBRO', ano: 2024 },
+        { id: 8, vencimento: '28/11/2024', valor: '55,00', status: 'pago', pgto: '20/11/2024', mes: 'NOVEMBRO', ano: 2024 },
+        { id: 7, vencimento: '28/10/2024', valor: '55,00', status: 'pago', pgto: '22/10/2024', mes: 'OUTUBRO', ano: 2024 },
+        { id: 6, vencimento: '28/09/2024', valor: '55,00', status: 'pago', pgto: '25/09/2024', mes: 'SETEMBRO', ano: 2024 },
+        { id: 5, vencimento: '28/08/2024', valor: '50,00', status: 'pago', pgto: '20/08/2024', mes: 'AGOSTO', ano: 2024 },
+        { id: 4, vencimento: '28/07/2024', valor: '50,00', status: 'pago', pgto: '21/07/2024', mes: 'JULHO', ano: 2024 },
+        { id: 3, vencimento: '28/06/2024', valor: '50,00', status: 'pago', pgto: '20/06/2024', mes: 'JUNHO', ano: 2024 },
+        { id: 2, vencimento: '28/05/2024', valor: '50,00', status: 'pago', pgto: '20/05/2024', mes: 'MAIO', ano: 2024 },
+        { id: 1, vencimento: '28/04/2024', valor: '50,00', status: 'pago', pgto: '20/04/2024', mes: 'ABRIL', ano: 2024 },
+    ];
+
+    const container = document.getElementById('listaParcelas');
+    const emptyState = document.getElementById('emptyState');
+
+    // Função Principal de Renderização
+    function renderizarLista(filtro) {
+        container.innerHTML = '';
+        let contador = 0;
+
+        dadosParcelas.forEach(p => {
+            // Lógica de Filtro
+            if (filtro !== 'todos' && p.status !== filtro) return;
+
+            contador++;
+
+            // Define estilos baseados no status
+            let iconClass = '';
+            let iconBg = '';
+            let textClass = '';
+            let valorPago = '0,00 R$';
+            let valorAberto = '0,00 R$';
+            let extraInfo = '';
+
+            if (p.status === 'aberto') {
+                iconClass = 'fa-solid fa-hourglass-half';
+                iconBg = 'bg-blue';
+                textClass = 'text-blue';
+                valorAberto = `${p.valor} R$`;
+            } else if (p.status === 'vencido') {
+                iconClass = 'fa-solid fa-circle-exclamation';
+                iconBg = 'bg-red';
+                textClass = 'text-red';
+                valorAberto = `${p.valor} R$`;
+            } else if (p.status === 'pago') {
+                iconClass = 'fa-solid fa-check';
+                iconBg = 'bg-green';
+                textClass = 'text-green';
+                valorPago = `${p.valor} R$`;
+                extraInfo = `<span class="parcela-vcto" style="display:block">Pgto.: ${p.pgto}</span>`;
+            }
+
+            // HTML do Card
+            const cardHTML = `
+                <div class="parcela-card" onclick="window.location.href='parcela.html'">
+                    <div class="card-main">
+                        <div class="status-icon ${iconBg}"><i class="${iconClass}"></i></div>
+                        <div class="card-details">
+                            <span class="parcela-title">PARCELA: ${p.id}</span>
+                            <span class="parcela-vcto">Vcto.: ${p.vencimento}</span>
+                            ${extraInfo}
+                        </div>
+                        <div class="card-values">
+                            <span class="val-label">Pago</span> <span class="val-text ${p.status === 'pago' ? 'text-green' : ''}">${valorPago}</span>
+                            <span class="val-label">Em Aberto</span> <span class="val-text val-total ${textClass}">${valorAberto}</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-right arrow-right"></i>
+                    </div>
+                    <div class="card-footer">
+                        <i class="fa-regular fa-comment-dots"></i> MÊS: ${p.mes} ANO: ${p.ano}
+                    </div>
+                </div>
+            `;
+            container.innerHTML += cardHTML;
+        });
+
+        // Mostra estado vazio se não houver itens
+        if (contador === 0) {
+            emptyState.style.display = 'block';
+        } else {
+            emptyState.style.display = 'none';
+        }
+    }
+
+    // Função de Controle dos Filtros
+    function filtrar(tipo, elemento) {
+        // Remove active de todos
+        document.querySelectorAll('.badge').forEach(b => {
+            b.className = 'badge'; // Reseta classes
+        });
+
+        // Adiciona cor específica ao ativo
+        if (tipo === 'todos') elemento.classList.add('active-dark');
+        if (tipo === 'aberto') elemento.classList.add('active-blue');
+        if (tipo === 'vencido') elemento.classList.add('active-red');
+        if (tipo === 'pago') elemento.classList.add('active-green');
+
+        renderizarLista(tipo);
+    }
+
+    // Renderiza inicial (Todos)
+    renderizarLista('todos');
+
+</script>
+</body>
+</html>

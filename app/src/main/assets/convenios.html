@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conveniados - Clube de Benefícios</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="./comum.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+        body { background-color: #f0f4f8; display: flex; justify-content: center; }
+        .app-container { width: 100%; max-width: 412px; height: 100vh; background-color: white; display: flex; flex-direction: column; position: relative; }
+        
+        .header { background-color: #1a237e; padding: 25px 20px; color: white; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px; }
+        .header-top { display: flex; align-items: center; margin-bottom: 20px; }
+        .header-top i { font-size: 20px; cursor: pointer; margin-right: 15px; }
+        .header-top h1 { font-size: 20px; font-weight: 500; }
+        
+        .search-container { position: relative; width: 100%; }
+        .search-container input { width: 100%; padding: 12px 15px 12px 45px; border-radius: 10px; border: none; font-size: 15px; outline: none; }
+        .search-container i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #1a237e; }
+        
+        .section-title { padding: 20px 20px 10px; font-size: 16px; font-weight: bold; color: #333; }
+        .categories { display: flex; gap: 15px; padding: 0 20px 20px; overflow-x: auto; scrollbar-width: none; }
+        .categories::-webkit-scrollbar { display: none; }
+        .cat-item { background: #e8eaf6; padding: 10px 20px; border-radius: 20px; white-space: nowrap; color: #1a237e; font-size: 14px; font-weight: 500; cursor: pointer; }
+        .cat-item.active { background: #1a237e; color: white; }
+        
+        .partners-list { flex: 1; padding: 0 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; padding-bottom: 100px; }
+        .partner-card { display: flex; align-items: center; padding: 15px; background: white; border: 1px solid #eee; border-radius: 12px; transition: 0.2s; }
+        .partner-card.hidden { display: none; }
+        .partner-logo { width: 60px; height: 60px; background: #f0f0f0; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-right: 15px; }
+        .partner-logo i { font-size: 24px; color: #1a237e; }
+        .partner-info { flex: 1; }
+        .partner-name { font-size: 15px; font-weight: bold; color: #333; }
+        .partner-desc { font-size: 12px; color: #666; margin-top: 3px; }
+        .discount-badge { background: #4caf50; color: white; font-size: 11px; padding: 3px 8px; border-radius: 5px; font-weight: bold; display: inline-block; margin-top: 5px; }
+
+        /* Bottom Nav Padronizado */
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; max-width: 412px; display: flex; justify-content: space-around; padding: 10px 0; border-top: 1px solid #eee; background: white; z-index: 1000; }
+        .nav-item { text-align: center; color: #888; font-size: 11px; flex: 1; cursor: pointer; display: flex; flex-direction: column; align-items: center; }
+        .nav-item.active { color: #1a237e; font-weight: 600; }
+        .nav-icon-container { padding: 8px 20px; border-radius: 12px; margin-bottom: 2px; transition: 0.2s; }
+        .nav-item.active .nav-icon-container { background-color: #1a237e; color: white; }
+        .nav-item i { font-size: 18px; }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <div class="header">
+        <div class="header-top">
+            <i class="fa-solid fa-arrow-left" onclick="window.history.back()"></i>
+            <h1>Clube de Benefícios</h1>
+        </div>
+        <div class="search-container">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="searchInput" placeholder="Buscar parceiro..." onkeyup="filterSearch()">
+        </div>
+    </div>
+
+    <h2 class="section-title">Categorias</h2>
+    <div class="categories" id="categoryList">
+        <div class="cat-item active" onclick="filterCategory(this, 'todos')">Todos</div>
+        <div class="cat-item" onclick="filterCategory(this, 'saude')">Saúde</div>
+        <div class="cat-item" onclick="filterCategory(this, 'educacao')">Educação</div>
+        <div class="cat-item" onclick="filterCategory(this, 'lazer')">Lazer</div>
+    </div>
+
+    <div class="partners-list" id="partnersContainer">
+        <div class="partner-card" data-category="saude">
+            <div class="partner-logo"><i class="fa-solid fa-house-medical"></i></div>
+            <div class="partner-info">
+                <div class="partner-name">Clínica Saúde Total</div>
+                <div class="partner-desc">Consultas e Exames</div>
+                <div class="discount-badge">ATÉ 40% OFF</div>
+            </div>
+            <i class="fa-solid fa-chevron-right" style="color: #ccc;"></i>
+        </div>
+        <div class="partner-card" data-category="saude">
+            <div class="partner-logo"><i class="fa-solid fa-pills"></i></div>
+            <div class="partner-info">
+                <div class="partner-name">Farmácia Popular</div>
+                <div class="partner-desc">Medicamentos</div>
+                <div class="discount-badge">ATÉ 20% OFF</div>
+            </div>
+            <i class="fa-solid fa-chevron-right" style="color: #ccc;"></i>
+        </div>
+        <div class="partner-card" data-category="educacao">
+            <div class="partner-logo"><i class="fa-solid fa-graduation-cap"></i></div>
+            <div class="partner-info">
+                <div class="partner-name">Faculdade Futuro</div>
+                <div class="partner-desc">Cursos de Graduação</div>
+                <div class="discount-badge">15% DE DESCONTO</div>
+            </div>
+            <i class="fa-solid fa-chevron-right" style="color: #ccc;"></i>
+        </div>
+    </div>
+
+    <nav class="bottom-nav">
+        <div class="nav-item" onclick="navega_contrato()">
+            <div class="nav-icon-container"><i class="fa-solid fa-file-contract"></i></div>
+            <span>Contrato</span>
+        </div>
+        <div class="nav-item" onclick="navega_carteira()">
+            <div class="nav-icon-container"><i class="fa-solid fa-address-card"></i></div>
+            <span>Carteirinha</span>
+        </div>
+        <div class="nav-item active" onclick="navega_conveios()">
+            <div class="nav-icon-container"><i class="fa-solid fa-hospital-user"></i></div>
+            <span>Conveniados</span>
+        </div>
+        <div class="nav-item" onclick="navega_informacoes()">
+            <div class="nav-icon-container"><i class="fa-solid fa-circle-info"></i></div>
+            <span>Informações</span>
+        </div>
+    </nav>
+</div>
+
+<script>
+    function filterCategory(element, category) {
+        document.querySelectorAll('.cat-item').forEach(item => item.classList.remove('active'));
+        element.classList.add('active');
+        const cards = document.querySelectorAll('.partner-card');
+        cards.forEach(card => {
+            if (category === 'todos' || card.getAttribute('data-category') === category) {
+                card.classList.remove('hidden');
+            } else { card.classList.add('hidden'); }
+        });
+    }
+    function filterSearch() {
+        const input = document.getElementById('searchInput').value.toLowerCase();
+        const cards = document.querySelectorAll('.partner-card');
+        cards.forEach(card => {
+            const name = card.querySelector('.partner-name').innerText.toLowerCase();
+            if (name.includes(input)) { card.classList.remove('hidden'); } else { card.classList.add('hidden'); }
+        });
+    }
+</script>
+</body>
+</html>
