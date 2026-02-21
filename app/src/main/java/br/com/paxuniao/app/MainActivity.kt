@@ -2,8 +2,10 @@ package br.com.paxuniao.app
 
 import android.os.Bundle
 import android.view.ViewGroup
+import android.webkit.JavascriptInterface
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -15,9 +17,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.AndroidView
 import br.com.paxuniao.app.ui.theme.ClientesTheme
 
+
 class MainActivity : ComponentActivity() {
+
+    private lateinit var dados: Dados
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        dados = Dados()
+        dados.open(this)
+        val versao = dados.getDBVersion()
+        Toast.makeText(this, "DB Version $versao", Toast.LENGTH_SHORT).show()
+
         enableEdgeToEdge()
         setContent {
             ClientesTheme {
@@ -26,7 +38,8 @@ class MainActivity : ComponentActivity() {
                     WebViewScreen(
                         url = "file:///android_asset/login.html",  // Substitua pela sua URL
                         activity = this@MainActivity, // Passa a referência da activity
-                        modifier = Modifier.padding(innerPadding)
+                        modifier = Modifier.padding(innerPadding),
+                        dados = dados
                     )
                 }
             }
@@ -34,7 +47,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-class WebAppInterface(private val activity: ComponentActivity, private val webView: WebView) {
+class WebAppInterface(private val activity: ComponentActivity, private val webView: WebView, private val dados: Dados) {
 
     // Esta anotação é OBRIGATÓRIA para segurança
     @android.webkit.JavascriptInterface
@@ -78,10 +91,23 @@ class WebAppInterface(private val activity: ComponentActivity, private val webVi
         // Você pode disparar ações do Android aqui quando o JS avisar que logou
         println("Usuário logado: $user")
     }
+
+    // Método que o HTML do Financeiro (Parcelas) vai chamar
+    @JavascriptInterface
+    fun getParcelas(cliCodigo: String?): String {
+        return dados.getJsonParcelas(cliCodigo)
+    }
+
+    // Método que o HTML dos Conveniados vai chamar
+    @JavascriptInterface
+    fun getConveniados(): String {
+        return dados.getJsonConveniados()
+    }
+
 }
 
 @Composable
-fun WebViewScreen(url: String, modifier: Modifier = Modifier, activity: MainActivity) {
+fun WebViewScreen(url: String, modifier: Modifier = Modifier, activity: MainActivity, dados: Dados) {
     AndroidView(
         modifier = modifier.fillMaxSize(),
         factory = { context ->
@@ -100,7 +126,7 @@ fun WebViewScreen(url: String, modifier: Modifier = Modifier, activity: MainActi
                     allowContentAccess = true
                 }
                 // "Android" será o nome do objeto dentro do JavaScript
-                addJavascriptInterface(WebAppInterface(activity,this), "Android")
+                addJavascriptInterface(WebAppInterface(activity,this, dados), "Android")
 
                 loadUrl(url)
             }
