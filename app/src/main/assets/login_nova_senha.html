@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nova Senha - PAX União</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, sans-serif; }
+        body { background-color: #fdfaf5; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        
+        .mobile-container {
+            width: 100%;
+            max-width: 400px;
+            background-color: white;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .header { background-color: #fff6e9; padding: 30px 20px; text-align: center; }
+        .logo-placeholder { width: 200px; height: 60px; background: url('logo.png') no-repeat center; background-size: contain; margin: 0 auto; }
+        .title { color: #2f3ad3; font-size: 22px; font-weight: bold; margin-top: 15px; }
+
+        .form-container { padding: 25px; flex: 1; }
+        .instruction-text { font-size: 14px; color: #666; margin-bottom: 25px; text-align: center; }
+
+        .input-group { position: relative; margin-bottom: 10px; }
+        .input-group i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #322fd3; }
+        .input-group .toggle-pass { left: auto; right: 15px; cursor: pointer; color: #aaa; }
+
+        input {
+            width: 100%;
+            padding: 15px 45px 15px 45px;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            background-color: #f8f8f8;
+            font-size: 16px;
+            outline: none;
+            transition: 0.2s;
+        }
+
+        input:focus { border-color: #322fd3; background-color: #fff; }
+
+        /* Força da Senha */
+        .strength-meter { height: 4px; background-color: #eee; margin-top: 5px; border-radius: 2px; overflow: hidden; }
+        .strength-bar { height: 100%; width: 0%; transition: 0.3s; }
+        .strength-text { font-size: 11px; margin-top: 4px; font-weight: bold; }
+
+        .error-msg { color: #c62828; font-size: 13px; margin-top: 5px; display: none; }
+
+        .btn-main {
+            width: 100%;
+            padding: 16px;
+            background-color: #322fd3;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 30px;
+        }
+
+        .btn-main:disabled { background-color: #ccc; cursor: not-allowed; }
+
+        /* Overlay de Carregamento */
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            z-index: 1000;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: #322fd3;
+        }
+
+        .spinner {
+            width: 40px; height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #322fd3;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 10px;
+        }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+<div id="id-loading" class="loading-overlay">
+    <div class="spinner" id="loading-spinner"></div>
+    <i class="fa-solid fa-circle-check" id="success-icon" style="display: none; font-size: 50px; color: #2ecc71; margin-bottom: 10px;"></i>
+    <span id="loading-text">Processando...</span>
+</div>
+
+<div class="mobile-container">
+    <div class="header">
+        <div class="logo-placeholder"></div>
+        <h2 class="title">Nova Senha</h2>
+    </div>
+
+    <div class="form-container">
+        <p class="instruction-text">Crie uma senha segura de pelo menos 6 caracteres.</p>
+        
+        <div class="input-group">
+            <i class="fa-solid fa-lock"></i>
+            <input type="password" id="newPass" placeholder="Nova senha" oninput="validarSenhas()">
+            <i class="fa-solid fa-eye toggle-pass" onclick="toggleVisibility('newPass', this)"></i>
+        </div>
+
+        <div style="margin-bottom: 20px;">
+            <div class="strength-meter">
+                <div id="strengthBar" class="strength-bar"></div>
+            </div>
+            <span id="strengthText" class="strength-text"></span>
+        </div>
+
+        <div class="input-group">
+            <i class="fa-solid fa-shield-check"></i>
+            <input type="password" id="confirmPass" placeholder="Confirme a nova senha" oninput="validarSenhas()">
+            <i class="fa-solid fa-eye toggle-pass" onclick="toggleVisibility('confirmPass', this)"></i>
+        </div>
+        <span id="matchError" class="error-msg">As senhas não coincidem.</span>
+
+        <button class="btn-main" id="btnSave" disabled onclick="salvarSenha()">Alterar Senha</button>
+    </div>
+</div>
+
+<script>
+    // Captura parâmetros da URL (?cpf=xxx&code=xxx)
+    const urlParams = new URLSearchParams(window.location.search);
+    const cpfParam = urlParams.get('cpf') || "";
+    const codeParam = urlParams.get('code') || "";
+
+    function toggleVisibility(id, icon) {
+        const el = document.getElementById(id);
+        if (el.type === "password") {
+            el.type = "text";
+            icon.classList.replace('fa-eye', 'fa-eye-slash');
+        } else {
+            el.type = "password";
+            icon.classList.replace('fa-eye-slash', 'fa-eye');
+        }
+    }
+
+    function validarSenhas() {
+        const p1 = document.getElementById('newPass').value;
+        const p2 = document.getElementById('confirmPass').value;
+        const btn = document.getElementById('btnSave');
+        const error = document.getElementById('matchError');
+        
+        // 1. Verificar Força
+        analisarForca(p1);
+
+        // 2. Verificar Igualdade e Requisito Mínimo (6 chars)
+        const match = p1 === p2;
+        const minLength = p1.length >= 6;
+
+        error.style.display = (p2.length > 0 && !match) ? 'block' : 'none';
+        btn.disabled = !(match && minLength);
+    }
+
+    function analisarForca(pass) {
+        const bar = document.getElementById('strengthBar');
+        const text = document.getElementById('strengthText');
+        let score = 0;
+
+        if (pass.length >= 6) score++;
+        if (/[A-Z]/.test(pass)) score++; // Letra maiúscula
+        if (/[0-9]/.test(pass)) score++; // Números
+        if (/[^A-Za-z0-9]/.test(pass)) score++; // Especial
+
+        const levels = [
+            { w: '0%', c: '#eee', t: '' },
+            { w: '25%', c: '#e74c3c', t: 'Muito fraca' },
+            { w: '50%', c: '#f1c40f', t: 'Fraca' },
+            { w: '75%', c: '#3498db', t: 'Boa' },
+            { w: '100%', c: '#2ecc71', t: 'Forte' }
+        ];
+
+        const result = levels[score];
+        bar.style.width = result.width;
+        bar.style.backgroundColor = result.c;
+        text.innerText = result.t;
+        text.style.color = result.c;
+    }
+
+    function updateLoader(text, showSpinner, showSuccess) {
+        document.getElementById('id-loading').style.display = 'flex';
+        document.getElementById('loading-text').innerText = text;
+        document.getElementById('loading-spinner').style.display = showSpinner ? 'block' : 'none';
+        document.getElementById('success-icon').style.display = showSuccess ? 'block' : 'none';
+    }
+
+    function salvarSenha() {
+        const novaSenha = document.getElementById('newPass').value;
+
+        updateLoader("Salvando nova senha...", true, false);
+
+        if (typeof Android !== 'undefined' && Android.setpass) {
+            // Chamada: Android.setpass(code, pass, cpf)
+            Android.setpass(codeParam, novaSenha, cpfParam);
+        } else {
+            // Simulação Navegador
+            console.log("Chamando: Android.setpass", { codeParam, novaSenha, cpfParam });
+            setTimeout(() => {
+                updateLoader("Senha alterada!", false, true);
+                setTimeout(() => {
+                    window.location.replace("login.html");
+                }, 2000);
+            }, 1500);
+        }
+    }
+</script>
+
+</body>
+</html>

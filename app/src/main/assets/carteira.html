@@ -160,21 +160,21 @@
             <div class="card-body">
                 <div class="data-group">
                     <span class="label">Nome do Titular</span>
-                    <span class="value-large">IVONEIDE S. NAVA ARAUJO</span>
+                    <span class="value-large"  id="cli_nome">IVONEIDE S. NAVA ARAUJO</span>
                 </div>
 
                 <div class="card-row">
                     <div class="data-group">
                         <span class="label">Contrato</span>
-                        <span class="value-small">0055-A1</span>
+                        <span class="value-small" id="cli_codigo">-</span>
                     </div>
                     <div class="data-group">
                         <span class="label">Plano</span>
-                        <span class="value-small">SUPER LUXO</span>
+                        <span class="value-small" id="cli_plano">-</span>
                     </div>
                     <div class="data-group">
                         <span class="label">Cidade</span>
-                        <span class="value-small">TERESINA-PI</span>
+                        <span class="value-small" id="cli_cidade">-</span>
                     </div>
                 </div>
             </div>
@@ -213,6 +213,40 @@
 </div>
 
 <script>
+
+    document.addEventListener('DOMContentLoaded', function() {            
+        Android.carrega_carteira();            
+    });        
+
+
+    function preencherDadosCliente(codigo, nome, cli_plano, cli_cidade) {
+        // Preenche o elemento com id "cli_nome"
+        const nomeElement = document.getElementById('cli_nome');
+        if (nomeElement) {
+            nomeElement.textContent = nome || '';
+        }
+        
+        // Preenche o elemento com id "cli_codigo"
+        const codigoElement = document.getElementById('cli_codigo');
+        if (codigoElement) {
+            codigoElement.textContent = codigo || '';
+        }
+
+        const cli_planoElement = document.getElementById('cli_plano');
+        if (cli_planoElement) {
+            cli_planoElement.textContent = cli_plano || '';
+        }
+        
+        const cli_cidadeElement = document.getElementById('cli_cidade');
+        if (cli_cidadeElement) {
+            cli_cidadeElement.textContent = cli_cidade || '';
+        }        
+
+        
+
+        
+    }
+
     function toggleRotation() {
         const card = document.getElementById('myCard');
         const btns = document.getElementById('actionBtns');

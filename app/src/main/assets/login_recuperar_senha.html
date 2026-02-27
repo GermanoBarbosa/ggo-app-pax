@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recuperar Senha - PAX União</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, sans-serif; }
+        body { background-color: #fdfaf5; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        
+        .mobile-container {
+            width: 100%;
+            max-width: 400px;
+            background-color: white;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .header { background-color: #fff6e9; padding: 30px 20px; text-align: center; }
+        .logo-placeholder { width: 200px; height: 60px; background: url('logo.png') no-repeat center; background-size: contain; margin: 0 auto; }
+
+        .form-container { padding: 25px; }
+        .instruction-text { font-size: 14px; color: #666; margin-bottom: 20px; text-align: center; }
+
+        .input-group { position: relative; margin-bottom: 15px; }
+        .input-group i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #322fd3; }
+
+        input {
+            width: 100%;
+            padding: 15px 15px 15px 45px;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            background-color: #f8f8f8;
+            font-size: 18px;
+            outline: none;
+        }
+
+        input:focus { border-color: #322fd3; background-color: #fff; }
+
+        .btn-main {
+            width: 100%;
+            padding: 15px;
+            background-color: #322fd3;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .recovery-options {
+            display: none;
+            margin-top: 25px;
+            border-top: 2px solid #eee;
+            padding-top: 20px;
+        }
+
+        .recovery-options h3 { font-size: 15px; color: #444; margin-bottom: 15px; text-align: center; }
+
+        .btn-option {
+            width: 100%;
+            padding: 14px;
+            background-color: white;
+            color: #322fd3;
+            border: 2px solid #322fd3;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            transition: 0.2s;
+        }
+
+        .btn-option i { margin-right: 12px; font-size: 16px; }
+        .btn-option:active { background-color: #322fd3; color: white; }
+
+        .no-contact-msg {
+            display: none;
+            padding: 15px;
+            background-color: #fff0f0;
+            border-radius: 10px;
+            color: #c62828;
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+
+        .footer-links { margin-top: auto; padding: 20px; text-align: center; }
+        .btn-back { color: #322fd3; text-decoration: none; font-size: 14px; font-weight: 500; }
+
+        /* Tela de carregamento (Overlay) */
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.8);
+            z-index: 1000;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: #322fd3;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #322fd3;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Estilo para botão desabilitado */
+        .btn-main:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }        
+    </style>
+</head>
+<body>
+<div id="id-loading" class="loading-overlay">
+    <div class="spinner" id="loading-spinner"></div>
+    <i class="fa-solid fa-circle-check" id="success-icon" style="display: none; font-size: 50px; color: #2ecc71; margin-bottom: 10px;"></i>
+    <span id="loading-text">Buscando informações...</span>
+</div>    
+<div class="mobile-container">
+    <div class="header">
+        <div class="logo-placeholder"></div>
+    </div>
+
+    <div class="form-container">
+        <p class="instruction-text">Digite seu CPF para recuperar o acesso.</p>
+        
+        <div class="input-group">
+            <i class="fa-solid fa-address-card"></i>
+            <input type="tel" placeholder="000.000.000-00" id="cpf" maxlength="14" oninput="mascaraCPF(this)" value="642.938.403-97">
+        </div>
+
+        <button class="btn-main" onclick="validarEBuscar()">Verificar Contatos</button>
+
+        <div class="recovery-options" id="recoveryOptions">
+            <h3>Escolha onde receber o código:</h3>
+            <div id="contatosList"></div>
+        </div>
+
+        <div class="no-contact-msg" id="noContactMsg">
+            CPF não encontrado ou sem contatos cadastrados. <br>
+            <a href="https://wa.me/5586994183880" style="color: #322fd3; font-weight: bold;">Chamar no WhatsApp</a>
+        </div>
+    </div>
+
+    <div class="footer-links">
+        <a href="login.html" class="btn-back"><i class="fa-solid fa-chevron-left"></i> Voltar</a>
+    </div>
+</div>
+
+<script>
+    // 1. Gerenciador de UI (Loading e Sucesso)
+    function updateLoader(text, showSpinner = true, showSuccess = false) {
+        const loader = document.getElementById('id-loading');
+        const spinner = document.getElementById('loading-spinner');
+        const successIcon = document.getElementById('success-icon');
+        const label = document.getElementById('loading-text');
+
+        loader.style.display = 'flex';
+        label.innerText = text;
+        spinner.style.display = showSpinner ? 'block' : 'none';
+        successIcon.style.display = showSuccess ? 'block' : 'none';
+    }
+
+    function toggleLoading(show) {
+        const btn = document.querySelector('.btn-main');
+        if (show) {
+            // Resetar para estado inicial de busca
+            updateLoader("Buscando informações...", true, false);
+            btn.disabled = true;
+        } else {
+            document.getElementById('id-loading').style.display = 'none';
+            btn.disabled = false;
+        }
+    }
+
+    // 2. Funções de Disparo (Verificar e Enviar)
+    function validarEBuscar() {
+        const cpfInput = document.getElementById('cpf');
+        const cpfLimpo = cpfInput.value.replace(/\D/g, "");
+
+        if (cpfLimpo.length !== 11 || !TestaCPF(cpfLimpo)) {
+            alert("Por favor, informe um CPF válido.");
+            cpfInput.focus();
+            return;
+        }
+
+        toggleLoading(true);
+        document.getElementById('recoveryOptions').style.display = 'none';
+        document.getElementById('noContactMsg').style.display = 'none';
+        
+        if (typeof Android !== 'undefined' && Android.buscarDadosPorCPF) {
+            Android.buscarDadosPorCPF(cpfLimpo);
+        } else {
+            setTimeout(() => { // Simulação caso teste no navegador
+                toggleLoading(false);
+                alert("Interface Android não detectada.");
+            }, 1000);
+        }
+    }
+
+    function dispararRecuperacao(tipo, index) {
+        const cpfInput = document.getElementById('cpf');
+        const cpfLimpo = cpfInput.value.replace(/\D/g, "");
+
+        // Mostra carregamento
+        updateLoader("Enviando código...", true, false);
+
+        if (typeof Android !== 'undefined' && Android.enviarCodigoRecuperacao) {
+            Android.enviarCodigoRecuperacao(cpfLimpo, tipo, index);
+            
+            // Simula o tempo de resposta para mostrar o sucesso
+            setTimeout(() => {
+                updateLoader("Enviado com sucesso!", false, true);
+
+                // Aguarda 2 segundos e fecha o overlay
+                setTimeout(() => {
+                    document.getElementById('id-loading').style.display = 'none';
+                    // (NÃO gera histórico)
+                    window.location.replace("login_verifica_codigo.html?cpf=" + cpfLimpo);                                        
+                }, 2000);
+            }, 1200); 
+        } else {
+            alert("Erro: Interface de envio não disponível.");
+            document.getElementById('id-loading').style.display = 'none';
+        }
+    }
+
+    // 3. Processamento de Dados (Retorno do Android)
+    function receberDadosBase64(base64Str) {
+        try {
+            const jsonStr = decodeURIComponent(escape(window.atob(base64Str)));
+            renderizarBotoes(jsonStr);
+        } catch (e) {
+            toggleLoading(false);
+            console.error("Erro ao decodificar:", e);
+        }
+    }
+
+    function renderizarBotoes(jsonStr) {
+        toggleLoading(false);
+        try {
+            const dados = JSON.parse(jsonStr);
+            const list = document.getElementById('contatosList');
+            const optionsDiv = document.getElementById('recoveryOptions');
+            const msgErro = document.getElementById('noContactMsg');
+
+            list.innerHTML = '';
+            
+            if (!dados || (dados.emails.length === 0 && dados.telefones.length === 0)) {
+                optionsDiv.style.display = 'none';
+                msgErro.style.display = 'block';
+                return;
+            }
+
+            msgErro.style.display = 'none';
+            optionsDiv.style.display = 'block';
+
+            dados.emails.forEach((email, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'btn-option';
+                btn.innerHTML = `<i class="fa-solid fa-envelope"></i> Enviar para ${email}`;
+                btn.onclick = () => dispararRecuperacao('email', idx);
+                list.appendChild(btn);
+            });
+
+            dados.telefones.forEach((tel, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'btn-option';
+                btn.innerHTML = `<i class="fa-solid fa-comment-sms"></i> Enviar SMS para ${tel}`;
+                btn.onclick = () => dispararRecuperacao('sms', idx);
+                list.appendChild(btn);
+            });
+        } catch (e) {
+            alert("Erro ao processar contatos.");
+        }
+    }
+
+    // 4. Utilitários (Máscara e Validação)
+    function mascaraCPF(i) {
+        let v = i.value.replace(/\D/g, "");
+        v = v.replace(/(\d{3})(\d)/, "$1.$2");
+        v = v.replace(/(\d{3})(\d)/, "$1.$2");
+        v = v.replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+        i.value = v;
+    }
+
+    function TestaCPF(strCPF) {
+        strCPF = strCPF.replace(/\D/g, "");
+        let Soma = 0, Resto;
+        if (strCPF == "00000000000") return false;
+        for (i=1; i<=9; i++) Soma = Soma + parseInt(strCPF.substring(i-1, i)) * (11 - i);
+        Resto = (Soma * 10) % 11;
+        if ((Resto == 10) || (Resto == 11))  Resto = 0;
+        if (Resto != parseInt(strCPF.substring(9, 10)) ) return false;
+        Soma = 0;
+        for (i = 1; i <= 10; i++) Soma = Soma + parseInt(strCPF.substring(i-1, i)) * (12 - i);
+        Resto = (Soma * 10) % 11;
+        if ((Resto == 10) || (Resto == 11)) Resto = 0;
+        if (Resto != parseInt(strCPF.substring(10, 11) ) ) return false;
+        return true;
+    }
+</script>
+
+</body>
+</html>

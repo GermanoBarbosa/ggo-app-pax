@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Selecionar Contrato - PAX União</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+        body { background-color: #f0f4f8; display: flex; justify-content: center; height: 100vh; }
+        .app-container { width: 100%; max-width: 412px; background-color: #fdfaf5; display: flex; flex-direction: column; position: relative; height: 100%; }
+
+        /* Header Padrão */
+        .header { background-color: #1a237e; padding: 25px 20px; color: white; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .header-top { display: flex; align-items: center; }
+        .header-top i { font-size: 20px; cursor: pointer; margin-right: 15px; }
+        .header-top h1 { font-size: 20px; font-weight: 500; }
+        .header-subtitle { font-size: 13px; color: #e8eaf6; margin-top: 5px; margin-left: 35px; }
+
+        /* Lista de Contratos */
+        .contract-list { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
+        
+        /* Card do Contrato */
+        .contract-card { 
+            display: flex; 
+            align-items: center; 
+            padding: 20px 15px; 
+            background: white; 
+            border: 1px solid #eee; 
+            border-radius: 15px; 
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            cursor: pointer; 
+            transition: transform 0.2s, box-shadow 0.2s; 
+        }
+        .contract-card:active { transform: scale(0.98); background-color: #f8f9fa; }
+        
+        .icon-container { 
+            width: 50px; height: 50px; 
+            background: #e8eaf6; 
+            border-radius: 12px; 
+            display: flex; align-items: center; justify-content: center; 
+            margin-right: 15px; 
+        }
+        .icon-container i { font-size: 24px; color: #1a237e; }
+        
+        .info-container { flex: 1; display: flex; flex-direction: column; }
+        .cli-nome { font-size: 16px; font-weight: bold; color: #333; margin-bottom: 3px; text-transform: uppercase; }
+        .cli-codigo { font-size: 13px; color: #666; display: flex; align-items: center; gap: 5px; }
+        .cli-status { display: inline-block; font-size: 10px; font-weight: bold; padding: 3px 8px; border-radius: 10px; margin-top: 5px; width: fit-content; }
+        
+        /* Status Cores */
+        .status-ativo { background-color: #e8f5e9; color: #2e7d32; }
+        .status-inativo { background-color: #ffebee; color: #c62828; }
+
+        .arrow-icon { color: #ccc; font-size: 18px; }
+
+        /* Estado Vazio */
+        .empty-state { text-align: center; padding: 40px 20px; color: #888; display: none; }
+        .empty-state i { font-size: 40px; margin-bottom: 10px; color: #ddd; }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <div class="header">
+        <div class="header-top">
+            <i class="fa-solid fa-arrow-left" onclick="window.history.back()"></i>
+            <h1>Meus Contratos</h1>
+        </div>
+        <div class="header-subtitle">Selecione um contrato para acessar o portal</div>
+    </div>
+
+    <div class="contract-list" id="listaContratos">
+        </div>
+
+    <div id="emptyState" class="empty-state">
+        <i class="fa-regular fa-folder-open"></i>
+        <p>Nenhum contrato encontrado para este usuário.</p>
+    </div>
+</div>
+
+<script>
+    function carregarContratos() {
+        const container = document.getElementById('listaContratos');
+        const emptyState = document.getElementById('emptyState');
+        
+        container.innerHTML = '';
+        let jsonContratos = [];
+
+         if(typeof Android == 'undefined') {
+        
+        jsonContratos = [
+                {
+                    "CLI_CODIGO": "0055-A1",
+                    "CLI_NOME": "Ivoneide S. Nava Araujo",
+                    "CLI_SITUACAO": "ATIVO"
+                },
+                {
+                    "CLI_CODIGO": "0088-B2",
+                    "CLI_NOME": "Ivoneide S. Nava Araujo",
+                    "CLI_SITUACAO": "INATIVO"
+                }
+            ];        
+        }
+        // Verifica se a interface nativa do Android está disponível
+        if (typeof Android !== 'undefined' && Android.getListaContratos) {
+            // Chama a função do Kotlin que consome o DadosJson
+            const dadosString = Android.getListaContratos();
+            if (dadosString) {
+                jsonContratos = JSON.parse(dadosString);
+            }
+        } else {
+            console.log("Interface Android não encontrada. Rodando no navegador?");
+        }
+
+        // Se o banco retornar vazio
+        if (jsonContratos.length === 0) {
+            emptyState.style.display = 'block';
+            return;
+        }
+
+        // Preenche a tela
+        jsonContratos.forEach(contrato => {
+            const statusClass = (contrato.CLI_SITUACAO.toUpperCase() === 'ATIVO') ? 'status-ativo' : 'status-inativo';
+            
+            const cardHTML = `
+                <div class="contract-card" onclick="selecionarContrato('${contrato.CLI_CODIGO}','${contrato.CLI_NOME}')">
+                    <div class="icon-container">
+                        <i class="fa-solid fa-file-signature"></i>
+                    </div>
+                    <div class="info-container">
+                        <span class="cli-nome">${contrato.CLI_NOME}</span>
+                        <span class="cli-codigo"><i class="fa-solid fa-hashtag"></i> ${contrato.CLI_CODIGO}</span>
+                        <span class="cli-status ${statusClass}">${contrato.CLI_SITUACAO}</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right arrow-icon"></i>
+                </div>
+            `;
+            container.innerHTML += cardHTML;
+        });
+    }
+
+    function selecionarContrato(codigo, cli_nome) {
+        if(typeof Android !== 'undefined' && Android.SelecionarContrato) {
+            // Chama o método no Kotlin passando o código
+            Android.SelecionarContrato(codigo, cli_nome);
+        } else {
+            alert("Contrato selecionado: " + codigo +","+ cli_nome);
+        }
+    }
+
+ 
+    window.onload = carregarContratos;
+</script>
+
+</body>
+</html>

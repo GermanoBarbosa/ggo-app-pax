@@ -17,12 +17,33 @@ public class Dados {
     Context ctx;
     public static int DBVersion = 0 ;
 
+    // Instância da nossa nova classe geradora de JSON
+    private DadosJson dadosJson;
+
+    // Método para acessar os geradores de JSON
+    public DadosJson getJsonHelper() {
+        if (dadosJson == null) {
+            dadosJson = new DadosJson();
+        }
+        return dadosJson;
+    }
+
     public void open(Context nctx){
         Log.i(TAG, "Dados abrindo...");
         int mStep=0;
         ctx=nctx;
+        boolean inserir_dados=false;
+        // TESTE SE O BANCO EXISTE
+        java.io.File dbFile = ctx.getDatabasePath("dados.db");
+        if (!dbFile.exists()) {
+            inserir_dados=true;
+        } else {
+            Log.i(TAG, "O banco de dados já existe.");
+        }
+
         BancoDados = ctx.openOrCreateDatabase("dados.db",  Context.MODE_PRIVATE,	null);
         BancoLog = ctx.openOrCreateDatabase("log.db",Context.MODE_PRIVATE, null);
+
 
         //BancoDados = ctx.openOrCreateDatabase("/data/data/br.com.praticonet/databases/dados.db",  Context.MODE_PRIVATE,	null);
         String sql = "CREATE TABLE IF NOT EXISTS TBSYS (S_KEY VARCHAR(20) PRIMARY KEY, S_TIPO INTEGER, S_TXT_60 VARCHAR(60));";
@@ -35,6 +56,10 @@ public class Dados {
         BancoLog.execSQL(sql5);
 
         update_db();
+
+        if (inserir_dados) {
+            inserirDadosExemplo();
+        }
     }
 
     public int getDBVersion(){
@@ -71,7 +96,7 @@ public class Dados {
         Log.i("Banco Versão",mStep+"");
 
         //-- 1. Tabela de Logon
-        sql=    "CREATE TABLE TB_LOGIN (\n" +
+        sql=    "CREATE TABLE TB_LOGIN (" +
                 "    LOGIN_SEQ INTEGER PRIMARY KEY AUTOINCREMENT," +
                 "    LOGIN_CPF TEXT NOT NULL UNIQUE," +
                 "    LOGIN_SENHA TEXT NOT NULL" +
@@ -91,7 +116,7 @@ public class Dados {
                 "CLI_TIPOPLANO INTEGER NOT NULL," +
                 "CLI_CLI_DATA_TRANS TEXT," +
                 "CLI_SITUACAO TEXT," +
-                "FOREIGN KEY (CLI_LOGIN_SEQ) REFERENCES TB_LOGIN(LOGIN_SEQ)\n" +
+                "FOREIGN KEY (CLI_LOGIN_SEQ) REFERENCES TB_LOGIN(LOGIN_SEQ)" +
                 ");";
         mStep = update_db_exec(mStep,1,sql);
 
@@ -106,36 +131,36 @@ public class Dados {
         mStep = update_db_exec(mStep,2,sql);
 
         //-- 4. Tabela de Parcelas (Relacionada ao Contrato)
-        sql=    "CREATE TABLE TB_CX (\n" +
-                "    CX_SEQ INTEGER PRIMARY KEY AUTOINCREMENT, -- DM_INTEGER32\n" +
-                "    CX_CLI_CODIGO TEXT NOT NULL,              -- Relacionamento com PAI: {PREFIXO}_{PK_PAI}\n" +
-                "    CX_NUMERO INTEGER,                        -- DM_INTEGER32 (Ex: 26)\n" +
-                "    CX_VENCIMENTO TEXT,                       -- DM_DT (YYYY-MM-DD)\n" +
-                "    CX_VALOR REAL,                            -- DM_CURRENCY\n" +
-                "    CX_STATUS TEXT,                           -- DMS_TEXTO_20 ('aberto', 'vencido', 'pago')\n" +
-                "    CX_DT_PGTO TEXT,                          -- DM_DT (YYYY-MM-DD, nulo se não pago)\n" +
-                "    CX_MES TEXT,                              -- DMS_TEXTO_20 (Ex: 'MAIO')\n" +
-                "    CX_ANO INTEGER,                           -- DM_INTEGER16 (Ex: 2026)\n" +
-                "    CX_CODIGO_BARRAS TEXT,                    -- DMS_TEXTO_100\n" +
-                "    FOREIGN KEY (CX_CLI_CODIGO) REFERENCES TB_CLI(CLI_CODIGO)\n" +
+        sql=    "CREATE TABLE TB_CX (" +
+                "    CX_SEQ INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                "    CX_CLI_CODIGO TEXT NOT NULL," +
+                "    CX_NUMERO INTEGER," +
+                "    CX_VENCIMENTO TEXT," +
+                "    CX_VALOR REAL," +
+                "    CX_STATUS TEXT," +
+                "    CX_DT_PGTO TEXT," +
+                "    CX_MES TEXT," +
+                "    CX_ANO INTEGER," +
+                "    CX_CODIGO_BARRAS TEXT," +
+                "    FOREIGN KEY (CX_CLI_CODIGO) REFERENCES TB_CLI(CLI_CODIGO)" +
                 ");";
         mStep = update_db_exec(mStep,3,sql);
 
         //-- 5. Tabela de Conveniados do Clube Pax
-        sql= "CREATE TABLE TB_CONVENIADOS (\n" +
-                "    CVN_SEQ INTEGER PRIMARY KEY AUTOINCREMENT,  -- DM_INTEGER32\n" +
-                "    CVN_NOME TEXT NOT NULL,                     -- DMS_NOME\n" +
-                "    CVN_DESCRICAO TEXT,                         -- DMS_TEXTO_100\n" +
-                "    CVN_CATEGORIA TEXT,                         -- DMS_TEXTO_30 ('saude', 'educacao', 'lazer')\n" +
-                "    CVN_DESCONTO TEXT,                          -- DMS_TEXTO_30 (Ex: 'ATÉ 40% OFF')\n" +
-                "    CVN_ICONE_HASH TEXT                         -- DMS_HASH (Apenas o hash da imagem)\n" +
+        sql= "CREATE TABLE TB_CONVENIADOS (" +
+                "    CVN_SEQ INTEGER PRIMARY KEY AUTOINCREMENT,"+
+                "    CVN_NOME TEXT NOT NULL," +
+                "    CVN_DESCRICAO TEXT," +
+                "    CVN_CATEGORIA TEXT," +
+                "    CVN_DESCONTO TEXT," +
+                "    CVN_ICONE_HASH TEXT" +
                 ");";
         mStep = update_db_exec(mStep,4,sql);
 
 
 
 
-        mStep = update_db_exec(mStep, 141, "ALTER TABLE PIX_RETORNO ADD PIX_SEQ INTEGER NOT NULL DEFAULT 0");
+        //mStep = update_db_exec(mStep, 141, "ALTER TABLE PIX_RETORNO ADD PIX_SEQ INTEGER NOT NULL DEFAULT 0");
 
         /* LOTE_STATUS
          *  0 = Não enviado
@@ -169,7 +194,7 @@ public class Dados {
     }
 
     @SuppressLint("Range")
-    public static String getString(String m_Key){
+    public String getString(String m_Key){
         String sql = "";
         String txt ="";
         Cursor cursor = BancoDados.query(
@@ -289,9 +314,121 @@ public class Dados {
 
     public String getJsonConveniados() {
         // Busca todos os conveniados ordenados por nome
-        String sql = "SELECT * FROM TB_CONVENIADOS ORDER BY CVN_NOME ASC";
+        //String sql = "SELECT * FROM TB_CONVENIADOS ORDER BY CVN_NOME ASC";
+        String sql = "{[{\"CONV_NOME\":\"Clínica Saúde & Vida\",\"CONV_ENDERECO\":\"Rua das Flores, 123\",\"CONV_CATEGORIA\":\"saude\",\"CONV_DESCONTO\":\"20% OFF\",\"CONV_ICONE\":\"fa-user-md\"},{\"CONV_NOME\":\"Farmácia Popular\",\"CONV_ENDERECO\":\"Av. Principal, 500\",\"CONV_CATEGORIA\":\"saude\",\"CONV_DESCONTO\":\"Até 50% OFF\",\"CONV_ICONE\":\"fa-pills\"},{\"CONV_NOME\":\"Academia Corpo Ativo\",\"CONV_ENDERECO\":\"Rua Treze de Maio, 88\",\"CONV_CATEGORIA\":\"Lazer\",\"CONV_DESCONTO\":\"Matrícula Grátis\",\"CONV_ICONE\":\"fa-dumbbell\"},{\"CONV_NOME\":\"Escola Saber\",\"CONV_ENDERECO\":\"Rua Treze de Maio, 88\",\"CONV_CATEGORIA\":\"educacao\",\"CONV_DESCONTO\":\"Matrícula Grátis\",\"CONV_ICONE\":\"fa-graduation-cap\"}]}";
         return obterJsonGenerico(sql);
     }
+
+    public void inserirDadosExemplo() {
+        try {
+            BancoDados.beginTransaction();
+
+            // Inserir login
+            BancoDados.execSQL("INSERT OR REPLACE INTO TBSYS (S_KEY, S_TIPO, S_TXT_60) VALUES ('ver', 141, 'Versão 1.4.0');");
+
+            // Inserir login de exemplo
+            BancoDados.execSQL("INSERT OR REPLACE INTO TB_LOGIN (LOGIN_SEQ, LOGIN_CPF, LOGIN_SENHA) VALUES (1, '12345678901', 'senha123');");
+
+            // Inserir dados do cliente principal (Ivoneide)
+            BancoDados.execSQL("INSERT OR REPLACE INTO TB_CLI (CLI_LOGIN_SEQ, CLI_CODIGO, CLI_NOME, CLI_ENDERECO, CLI_ENDERECON, CLI_CIDADE, CLI_UF, CLI_CEP, CLI_TIPOPLANO, CLI_CLI_DATA_TRANS, CLI_SITUACAO) " +
+                    "VALUES (1, '0044-A1', 'IVONEIDE S. NAVA ARAUJO', 'Rua Miguel Atta, 87', 'Centro', 'TERESINA', 'PI', '64000-000', 1, '20/03/2015', 'ATIVO')" );
+
+
+            BancoDados.execSQL("INSERT OR REPLACE INTO TB_CLI (CLI_LOGIN_SEQ, CLI_CODIGO, CLI_NOME, CLI_ENDERECO, CLI_ENDERECON, CLI_CIDADE, CLI_UF, CLI_CEP, CLI_TIPOPLANO, CLI_CLI_DATA_TRANS, CLI_SITUACAO) " +
+                    "VALUES (1, '1111-A1', 'IVONEIDE S. NAVA ARAUJO', 'Rua Miguel Atta, 87', 'Centro', 'TERESINA', 'PI', '64000-000', 1, '20/03/2015', 'ATIVO')" );
+
+
+            // Inserir dependentes
+            BancoDados.execSQL("INSERT OR REPLACE INTO TB_DEPENDENTES (DEP_SEQ, DEP_CLI_CODIGO, DEP_NOME, DEP_GRAU_PARENTESCO) VALUES (1, '0044-A1', 'João Pedro Nava Araujo', 'FILHO')");
+            BancoDados.execSQL("INSERT OR REPLACE INTO TB_DEPENDENTES (DEP_SEQ, DEP_CLI_CODIGO, DEP_NOME, DEP_GRAU_PARENTESCO) VALUES (2, '0055-A1', 'Maria Clara Nava Araujo', 'FILHA'),(3, '0055-A1', 'Antonio Carlos Araujo', 'CONJUGE');");
+
+            // Inserir parcelas (financeiro)
+            BancoDados.execSQL("INSERT OR REPLACE INTO TB_CX (CX_SEQ, CX_CLI_CODIGO, CX_NUMERO, CX_VENCIMENTO, CX_VALOR, CX_STATUS, CX_DT_PGTO, CX_MES, CX_ANO, CX_CODIGO_BARRAS) VALUES (1, '0055-A1', 26, '2026-05-28', 60.00, 'aberto', NULL, 'MAIO', 2026, '75693146000000060001332501094738562150681001')");
+            BancoDados.execSQL("INSERT OR REPLACE INTO TB_CX (CX_SEQ, CX_CLI_CODIGO, CX_NUMERO, CX_VENCIMENTO, CX_VALOR, CX_STATUS, CX_DT_PGTO, CX_MES, CX_ANO, CX_CODIGO_BARRAS) VALUES (2, '0055-A1', 25, '2026-04-28', 60.00, 'aberto', NULL, 'ABRIL', 2026, '75693146000000060001332501094738562150681002')");
+            BancoDados.execSQL("INSERT OR REPLACE INTO TB_CX (CX_SEQ, CX_CLI_CODIGO, CX_NUMERO, CX_VENCIMENTO, CX_VALOR, CX_STATUS, CX_DT_PGTO, CX_MES, CX_ANO, CX_CODIGO_BARRAS) VALUES (3, '0055-A1', 24, '2026-03-28', 60.00, 'aberto', NULL, 'MARÇO', 2026, '75693146000000060001332501094738562150681003')");
+            BancoDados.execSQL("INSERT OR REPLACE INTO TB_CX (CX_SEQ, CX_CLI_CODIGO, CX_NUMERO, CX_VENCIMENTO, CX_VALOR, CX_STATUS, CX_DT_PGTO, CX_MES, CX_ANO, CX_CODIGO_BARRAS) VALUES (4, '0055-A1', 23, '2026-02-28', 60.00, 'vencido', NULL, 'FEVEREIRO', 2026, '75693146000000060001332501094738562150681004')");
+            BancoDados.execSQL("INSERT OR REPLACE INTO TB_CX (CX_SEQ, CX_CLI_CODIGO, CX_NUMERO, CX_VENCIMENTO, CX_VALOR, CX_STATUS, CX_DT_PGTO, CX_MES, CX_ANO, CX_CODIGO_BARRAS) VALUES (5, '0055-A1', 22, '2026-01-28', 60.00, 'vencido', NULL, 'JANEIRO', 2026, '75693146000000060001332501094738562150681005')");
+            BancoDados.execSQL("INSERT OR REPLACE INTO TB_CX (CX_SEQ, CX_CLI_CODIGO, CX_NUMERO, CX_VENCIMENTO, CX_VALOR, CX_STATUS, CX_DT_PGTO, CX_MES, CX_ANO, CX_CODIGO_BARRAS) VALUES (6, '0055-A1', 21, '2025-12-28', 60.00, 'pago', '2025-12-20', 'DEZEMBRO', 2025, '75693146000000060001332501094738562150681006')");
+            BancoDados.execSQL("INSERT OR REPLACE INTO TB_CX (CX_SEQ, CX_CLI_CODIGO, CX_NUMERO, CX_VENCIMENTO, CX_VALOR, CX_STATUS, CX_DT_PGTO, CX_MES, CX_ANO, CX_CODIGO_BARRAS) VALUES (7, '0055-A1', 20, '2025-11-28', 60.00, 'pago', '2025-11-22', 'NOVEMBRO', 2025, '75693146000000060001332501094738562150681007')");
+            BancoDados.execSQL("INSERT OR REPLACE INTO TB_CX (CX_SEQ, CX_CLI_CODIGO, CX_NUMERO, CX_VENCIMENTO, CX_VALOR, CX_STATUS, CX_DT_PGTO, CX_MES, CX_ANO, CX_CODIGO_BARRAS) VALUES (8, '0055-A1', 19, '2025-10-28', 60.00, 'pago', '2025-10-25', 'OUTUBRO', 2025, '75693146000000060001332501094738562150681008')");
+            BancoDados.execSQL("INSERT OR REPLACE INTO TB_CX (CX_SEQ, CX_CLI_CODIGO, CX_NUMERO, CX_VENCIMENTO, CX_VALOR, CX_STATUS, CX_DT_PGTO, CX_MES, CX_ANO, CX_CODIGO_BARRAS) VALUES (9, '0055-A1', 18, '2025-09-28', 60.00, 'pago', '2025-09-28', 'SETEMBRO', 2025, '75693146000000060001332501094738562150681009')");
+            BancoDados.execSQL("INSERT OR REPLACE INTO TB_CX (CX_SEQ, CX_CLI_CODIGO, CX_NUMERO, CX_VENCIMENTO, CX_VALOR, CX_STATUS, CX_DT_PGTO, CX_MES, CX_ANO, CX_CODIGO_BARRAS) VALUES (10, '0055-A1', 17, '2025-08-28', 60.00, 'pago', '2025-08-20', 'AGOSTO', 2025, '75693146000000060001332501094738562150681010')");
+            BancoDados.execSQL("INSERT OR REPLACE INTO TB_CX (CX_SEQ, CX_CLI_CODIGO, CX_NUMERO, CX_VENCIMENTO, CX_VALOR, CX_STATUS, CX_DT_PGTO, CX_MES, CX_ANO, CX_CODIGO_BARRAS) VALUES (11, '0055-A1', 16, '2025-07-28', 60.00, 'pago', '2025-07-21', 'JULHO', 2025, '75693146000000060001332501094738562150681011')");
+            BancoDados.execSQL("INSERT OR REPLACE INTO TB_CX (CX_SEQ, CX_CLI_CODIGO, CX_NUMERO, CX_VENCIMENTO, CX_VALOR, CX_STATUS, CX_DT_PGTO, CX_MES, CX_ANO, CX_CODIGO_BARRAS) VALUES (12, '0055-A1', 15, '2025-06-28', 60.00, 'pago', '2025-06-25', 'JUNHO', 2025, '75693146000000060001332501094738562150681012')");
+            BancoDados.execSQL("INSERT OR REPLACE INTO TB_CX (CX_SEQ, CX_CLI_CODIGO, CX_NUMERO, CX_VENCIMENTO, CX_VALOR, CX_STATUS, CX_DT_PGTO, CX_MES, CX_ANO, CX_CODIGO_BARRAS) VALUES (13, '0055-A1', 14, '2025-05-28', 55.00, 'pago', '2025-05-20', 'MAIO', 2025, '75693146000000060001332501094738562150681013')");
+            BancoDados.execSQL("INSERT OR REPLACE INTO TB_CX (CX_SEQ, CX_CLI_CODIGO, CX_NUMERO, CX_VENCIMENTO, CX_VALOR, CX_STATUS, CX_DT_PGTO, CX_MES, CX_ANO, CX_CODIGO_BARRAS) VALUES (14, '0055-A1', 13, '2025-04-28', 55.00, 'pago', '2025-04-22', 'ABRIL', 2025, '75693146000000060001332501094738562150681014')");
+            BancoDados.execSQL("INSERT OR REPLACE INTO TB_CX (CX_SEQ, CX_CLI_CODIGO, CX_NUMERO, CX_VENCIMENTO, CX_VALOR, CX_STATUS, CX_DT_PGTO, CX_MES, CX_ANO, CX_CODIGO_BARRAS) VALUES (15, '0055-A1', 12, '2025-03-28', 55.00, 'pago', '2025-03-28', 'MARÇO', 2025, '75693146000000060001332501094738562150681015')");
+            BancoDados.execSQL("INSERT OR REPLACE INTO TB_CX (CX_SEQ, CX_CLI_CODIGO, CX_NUMERO, CX_VENCIMENTO, CX_VALOR, CX_STATUS, CX_DT_PGTO, CX_MES, CX_ANO, CX_CODIGO_BARRAS) VALUES (16, '0055-A1', 11, '2025-02-28', 55.00, 'pago', '2025-02-20', 'FEVEREIRO', 2025, '75693146000000060001332501094738562150681016')");
+            BancoDados.execSQL("INSERT OR REPLACE INTO TB_CX (CX_SEQ, CX_CLI_CODIGO, CX_NUMERO, CX_VENCIMENTO, CX_VALOR, CX_STATUS, CX_DT_PGTO, CX_MES, CX_ANO, CX_CODIGO_BARRAS) VALUES (17, '0055-A1', 10, '2025-01-28', 55.00, 'pago', '2025-01-20', 'JANEIRO', 2025, '75693146000000060001332501094738562150681017')");
+            BancoDados.execSQL("INSERT OR REPLACE INTO TB_CX (CX_SEQ, CX_CLI_CODIGO, CX_NUMERO, CX_VENCIMENTO, CX_VALOR, CX_STATUS, CX_DT_PGTO, CX_MES, CX_ANO, CX_CODIGO_BARRAS) VALUES (18, '0055-A1', 9, '2024-12-28', 55.00, 'pago', '2024-12-15', 'DEZEMBRO', 2024, '75693146000000060001332501094738562150681018')");
+            BancoDados.execSQL("INSERT OR REPLACE INTO TB_CX (CX_SEQ, CX_CLI_CODIGO, CX_NUMERO, CX_VENCIMENTO, CX_VALOR, CX_STATUS, CX_DT_PGTO, CX_MES, CX_ANO, CX_CODIGO_BARRAS) VALUES (19, '0055-A1', 8, '2024-11-28', 55.00, 'pago', '2024-11-20', 'NOVEMBRO', 2024, '75693146000000060001332501094738562150681019')");
+            BancoDados.execSQL("INSERT OR REPLACE INTO TB_CX (CX_SEQ, CX_CLI_CODIGO, CX_NUMERO, CX_VENCIMENTO, CX_VALOR, CX_STATUS, CX_DT_PGTO, CX_MES, CX_ANO, CX_CODIGO_BARRAS) VALUES (20, '0055-A1', 7, '2024-10-28', 55.00, 'pago', '2024-10-22', 'OUTUBRO', 2024, '75693146000000060001332501094738562150681020')");
+            BancoDados.execSQL("INSERT OR REPLACE INTO TB_CX (CX_SEQ, CX_CLI_CODIGO, CX_NUMERO, CX_VENCIMENTO, CX_VALOR, CX_STATUS, CX_DT_PGTO, CX_MES, CX_ANO, CX_CODIGO_BARRAS) VALUES (21, '0055-A1', 6, '2024-09-28', 55.00, 'pago', '2024-09-25', 'SETEMBRO', 2024, '75693146000000060001332501094738562150681021')");
+            BancoDados.execSQL("INSERT OR REPLACE INTO TB_CX (CX_SEQ, CX_CLI_CODIGO, CX_NUMERO, CX_VENCIMENTO, CX_VALOR, CX_STATUS, CX_DT_PGTO, CX_MES, CX_ANO, CX_CODIGO_BARRAS) VALUES (22, '0055-A1', 5, '2024-08-28', 50.00, 'pago', '2024-08-20', 'AGOSTO', 2024, '75693146000000060001332501094738562150681022')");
+            BancoDados.execSQL("INSERT OR REPLACE INTO TB_CX (CX_SEQ, CX_CLI_CODIGO, CX_NUMERO, CX_VENCIMENTO, CX_VALOR, CX_STATUS, CX_DT_PGTO, CX_MES, CX_ANO, CX_CODIGO_BARRAS) VALUES (23, '0055-A1', 4, '2024-07-28', 50.00, 'pago', '2024-07-21', 'JULHO', 2024, '75693146000000060001332501094738562150681023')");
+            BancoDados.execSQL("INSERT OR REPLACE INTO TB_CX (CX_SEQ, CX_CLI_CODIGO, CX_NUMERO, CX_VENCIMENTO, CX_VALOR, CX_STATUS, CX_DT_PGTO, CX_MES, CX_ANO, CX_CODIGO_BARRAS) VALUES (24, '0055-A1', 3, '2024-06-28', 50.00, 'pago', '2024-06-20', 'JUNHO', 2024, '75693146000000060001332501094738562150681024')");
+            BancoDados.execSQL("INSERT OR REPLACE INTO TB_CX (CX_SEQ, CX_CLI_CODIGO, CX_NUMERO, CX_VENCIMENTO, CX_VALOR, CX_STATUS, CX_DT_PGTO, CX_MES, CX_ANO, CX_CODIGO_BARRAS) VALUES (25, '0055-A1', 2, '2024-05-28', 50.00, 'pago', '2024-05-20', 'MAIO', 2024, '75693146000000060001332501094738562150681025')");
+            BancoDados.execSQL("INSERT OR REPLACE INTO TB_CX (CX_SEQ, CX_CLI_CODIGO, CX_NUMERO, CX_VENCIMENTO, CX_VALOR, CX_STATUS, CX_DT_PGTO, CX_MES, CX_ANO, CX_CODIGO_BARRAS) VALUES (26, '0055-A1', 1, '2024-04-28', 50.00, 'pago', '2024-04-20', 'ABRIL', 2024, '75693146000000060001332501094738562150681026')");
+
+
+            /// Inserir conveniados
+            BancoDados.execSQL("INSERT OR REPLACE INTO TB_CONVENIADOS (CVN_SEQ, CVN_NOME, CVN_DESCRICAO, CVN_CATEGORIA, CVN_DESCONTO, CVN_ICONE_HASH) VALUES (1, 'Clínica Saúde Total', 'Consultas e Exames', 'saude', 'ATÉ 40% OFF', 'fa-house-medical')");
+            BancoDados.execSQL("INSERT OR REPLACE INTO TB_CONVENIADOS (CVN_SEQ, CVN_NOME, CVN_DESCRICAO, CVN_CATEGORIA, CVN_DESCONTO, CVN_ICONE_HASH) VALUES (2, 'Farmácia Popular', 'Medicamentos', 'saude', 'ATÉ 20% OFF', 'fa-pills')");
+            BancoDados.execSQL("INSERT OR REPLACE INTO TB_CONVENIADOS (CVN_SEQ, CVN_NOME, CVN_DESCRICAO, CVN_CATEGORIA, CVN_DESCONTO, CVN_ICONE_HASH) VALUES (3, 'Faculdade Futuro', 'Cursos de Graduação', 'educacao', '15% DE DESCONTO', 'fa-graduation-cap')");
+            BancoDados.execSQL("INSERT OR REPLACE INTO TB_CONVENIADOS (CVN_SEQ, CVN_NOME, CVN_DESCRICAO, CVN_CATEGORIA, CVN_DESCONTO, CVN_ICONE_HASH) VALUES (4, 'Ótica Visão Clara', 'Lentes e Armações', 'saude', '30% OFF', 'fa-glasses')");
+            BancoDados.execSQL("INSERT OR REPLACE INTO TB_CONVENIADOS (CVN_SEQ, CVN_NOME, CVN_DESCRICAO, CVN_CATEGORIA, CVN_DESCONTO, CVN_ICONE_HASH) VALUES (5, 'Academia Corpo & Saúde', 'Mensalidades', 'lazer', '25% OFF', 'fa-dumbbell')");
+            BancoDados.execSQL("INSERT OR REPLACE INTO TB_CONVENIADOS (CVN_SEQ, CVN_NOME, CVN_DESCRICAO, CVN_CATEGORIA, CVN_DESCONTO, CVN_ICONE_HASH) VALUES (6, 'Colégio Primeiros Passos', 'Ensino Infantil', 'educacao', '10% OFF', 'fa-school')");
+            BancoDados.execSQL("INSERT OR REPLACE INTO TB_CONVENIADOS (CVN_SEQ, CVN_NOME, CVN_DESCRICAO, CVN_CATEGORIA, CVN_DESCONTO, CVN_ICONE_HASH) VALUES (7, 'Restaurante Sabor Caseiro', 'Refeições', 'lazer', '15% OFF', 'fa-utensils')");
+            BancoDados.execSQL("INSERT OR REPLACE INTO TB_CONVENIADOS (CVN_SEQ, CVN_NOME, CVN_DESCRICAO, CVN_CATEGORIA, CVN_DESCONTO, CVN_ICONE_HASH) VALUES (8, 'Laboratório Análises', 'Exames Laboratoriais', 'saude', '35% OFF', 'fa-flask')");
+            BancoDados.execSQL("INSERT OR REPLACE INTO TB_CONVENIADOS (CVN_SEQ, CVN_NOME, CVN_DESCRICAO, CVN_CATEGORIA, CVN_DESCONTO, CVN_ICONE_HASH) VALUES (9, 'Clínica Odontológica Sorriso', 'Tratamentos Dentários', 'saude', '25% OFF', 'fa-tooth')");
+            BancoDados.execSQL("INSERT OR REPLACE INTO TB_CONVENIADOS (CVN_SEQ, CVN_NOME, CVN_DESCRICAO, CVN_CATEGORIA, CVN_DESCONTO, CVN_ICONE_HASH) VALUES (10, 'Livraria do Conhecimento', 'Livros e Materiais', 'educacao', '20% OFF', 'fa-book');");
+
+
+            // Verificar inserções
+            /*
+            BancoDados.execSQL("");
+            SELECT 'TOTAL LOGIN: ' || COUNT(*) FROM TB_LOGIN;
+            SELECT 'TOTAL CLIENTES: ' || COUNT(*) FROM TB_CLI;
+            SELECT 'TOTAL DEPENDENTES: ' || COUNT(*) FROM TB_DEPENDENTES;
+            SELECT 'TOTAL PARCELAS: ' || COUNT(*) FROM TB_CX;
+            SELECT 'TOTAL CONVENIADOS: ' || COUNT(*) FROM TB_CONVENIADOS;
+            */
+            BancoDados.setTransactionSuccessful();
+        } catch (Exception e) {
+            Log.e(TAG, "Erro ao inserir dados de exemplo", e);
+        } finally {
+            BancoDados.endTransaction();
+        }
+    }
+
+    public class DadosJson {
+        /**
+         * Retorna a lista de contratos para a tela selecao_contrato.html
+         * @return String no formato JSON Array
+         */
+        public String getContratosJson() {
+            // Traz o código, nome e situação da tabela TB_CLI
+            String sql = "SELECT CLI_CODIGO, CLI_NOME, CLI_SITUACAO FROM TB_CLI ORDER BY CLI_NOME ASC";
+            return obterJsonGenerico(sql);
+        }
+
+        // Você pode mover seus outros métodos para cá também:
+        public String getCliente(String cliCodigo) {
+            String sql = "SELECT * FROM TB_CLI WHERE CLI_CODIGO = '" + cliCodigo + "'";
+            return obterJsonGenerico(sql);
+        }
+
+        public String getParcelas(String cliCodigo) {
+            String sql = "SELECT * FROM TB_CX WHERE CX_CLI_CODIGO = '" + cliCodigo + "' ORDER BY CX_VENCIMENTO DESC";
+            return obterJsonGenerico(sql);
+        }
+
+        public String getConveniados() {
+            String sql = "SELECT * FROM TB_CONVENIADOS ORDER BY CVN_NOME ASC";
+            return obterJsonGenerico(sql);
+        }
+    }
+
 
 }
 

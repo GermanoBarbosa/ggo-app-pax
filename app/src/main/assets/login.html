@@ -100,6 +100,19 @@
             outline: none;
         }
 
+        .input-error {
+            border: 2px solid #e74c3c !important;
+            background-color: #fff5f5 !important;
+        }
+
+        .error-text {
+            color: #e74c3c;
+            font-size: 12px;
+            margin-top: 6px;
+            display: block;
+            padding-left: 45px;
+        }
+
         /* Estilo para o campo em foco (borda vermelha como na imagem) */
         .input-group.active input {
             border: 2px solid #3a2fd3;
@@ -193,7 +206,8 @@
     <div class="form-container">
         <div class="input-group active">
             <i class="fa-regular fa-id-card"></i>
-            <input type="text" placeholder="CPF" value="CPF">
+            <input id="cpf" type="text" placeholder="CPF" value="">
+            <span class="error-text" id="cpf-error" style="display:none">CPF inválido</span>
         </div>
 
         <div class="input-group">
@@ -213,20 +227,96 @@
         <button class="btn-enter" onclick="Login()">Entrar</button>
 
         <div class="footer-links">
-            <a href="#" class="btn-link">Me Cadastrar</a>
-            <a href="#" class="btn-link">Esqueci minha senha</a>
+            <a href="#" class="btn-link" onclick="Cadastrar()">Me Cadastrar</a>
+            <a href="#" class="btn-link" onclick="RecuperarSenha()">Esqueci minha senha (Já sou cliente)</a>
         </div>
     </div>
 </div>
 <script>
-    function Login() {
-        // 'Android' é o nome que definimos no addJavascriptInterface
-        // 'showToast' é o nome da função na classe WebAppInterface
-     //   if(typeof Android !== "undefined") { Android.SalvarCarteirinha(); } 
-     //   else { 
-            window.location.href = "./home.html"; // Redireciona para a página da carteira virtual
-     //    }        
-    }        
+    (function(){
+        function maskCPF(value){
+            var v = value.replace(/\D/g,'').slice(0,11);
+            if(v.length > 9) return v.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+            if(v.length > 6) return v.replace(/(\d{3})(\d{3})(\d+)/, '$1.$2.$3');
+            if(v.length > 3) return v.replace(/(\d{3})(\d+)/, '$1.$2');
+            return v;
+        }
+
+        function validarCPFRaw(str){
+            var s = String(str).replace(/\D/g,'');
+            if(s.length !== 11) return false;
+            if(/^(\d)\1+$/.test(s)) return false;
+            var sum = 0;
+            for(var i=0;i<9;i++) sum += parseInt(s.charAt(i)) * (10 - i);
+            var rev = 11 - (sum % 11);
+            if(rev === 10 || rev === 11) rev = 0;
+            if(rev !== parseInt(s.charAt(9))) return false;
+            sum = 0;
+            for(var j=0;j<10;j++) sum += parseInt(s.charAt(j)) * (11 - j);
+            rev = 11 - (sum % 11);
+            if(rev === 10 || rev === 11) rev = 0;
+            if(rev !== parseInt(s.charAt(10))) return false;
+            return true;
+        }
+
+        var cpfInput = document.getElementById('cpf');
+        var cpfError = document.getElementById('cpf-error');
+
+        if(cpfInput){
+            cpfInput.addEventListener('focus', function(e){
+                try{ this.select(); }catch(e){}
+                this.parentElement.classList.add('active');
+            });
+
+            cpfInput.addEventListener('blur', function(e){
+                this.parentElement.classList.remove('active');
+                validateAndMark();
+            });
+
+            cpfInput.addEventListener('input', function(e){
+                var pos = this.selectionStart;
+                this.value = maskCPF(this.value);
+            });
+        }
+
+        function validateAndMark(){
+            if(!cpfInput) return true;
+            var ok = validarCPFRaw(cpfInput.value);
+            if(ok){
+                cpfInput.classList.remove('input-error');
+                cpfError.style.display = 'none';
+            } else {
+                cpfInput.classList.add('input-error');
+                cpfError.style.display = 'block';
+            }
+            return ok;
+        }
+
+        window.Login = function(){
+            if(cpfInput){
+                if(!validateAndMark()){
+                    cpfInput.focus();
+                    return; // não segue se CPF inválido
+                }
+            }
+            window.location.href = "./selecao_contrato.html";
+        };
+
+        window.Cadastrar = function(){
+            if(cpfInput){
+                if(!validateAndMark()){
+                    cpfInput.focus();
+                    return; // não segue se CPF inválido
+                }
+            }
+            window.location.href = "./login_cadastro.html";
+        };
+        
+        window.RecuperarSenha = function(){
+            window.location.href = "./login_recuperar_senha.html?cpf=" + encodeURIComponent(cpfInput.value);
+        };        
+        
+    })();
 </script>
 </body>
 </html>

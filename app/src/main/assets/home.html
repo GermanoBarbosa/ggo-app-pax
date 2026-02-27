@@ -53,10 +53,33 @@
     </style>
 </head>
 <body>
+    <script>
+        
+        document.addEventListener('DOMContentLoaded', function() {            
+            Android.carrega_selecao();            
+        });        
+
+
+        function preencherDadosCliente(codigo, nome) {
+            // Preenche o elemento com id "cli_nome"
+            const nomeElement = document.getElementById('cli_nome');
+            if (nomeElement) {
+                nomeElement.textContent = nome || '';
+            }
+            
+            // Preenche o elemento com id "cli_codigo"
+            const codigoElement = document.getElementById('cli_codigo');
+            if (codigoElement) {
+                codigoElement.textContent = codigo || '';
+            }
+        }
+
+    </script>
 <div class="app-container">
     <div class="welcome-header">
-        <h2>Olá, Ivoneide</h2>
+        <h2>Olá, </h2><h2 id="cli_nome"></h2>
         <p>Bem-vindo(a) ao seu portal PAX União</p>
+        <h2>Contrato: </h2><h2 id="cli_codigo"></h2>
     </div>
 
     <div class="menu-grid">
@@ -68,7 +91,7 @@
             <i class="fa-solid fa-file-contract"></i>
             <span>Meu Contrato</span>
         </a>
-        <a href="parcelas.html" class="menu-item">
+        <a href="javascript:void(0)" onclick="window.location.href='contrato.html?tab=financeiro'" class="menu-item">
             <i class="fa-solid fa-hand-holding-dollar"></i>
             <span>Financeiro</span>
         </a>

@@ -1,0 +1,363 @@
+<!-- cadastro.html -->
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro - PAX União</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: #fdfaf5; /* Fundo levemente creme */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .mobile-container {
+            width: 100%;
+            max-width: 400px;
+            height: 100vh;
+            background-color: white;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Seção do Topo/Logo */
+        .header {
+            background-color: #fff6e9;
+            padding: 10px 20px; 
+            margin-top: 10px;
+            text-align: center;
+            flex: 0.2;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .logo-placeholder {
+            width: 235px;
+            height: 60px;
+            background: url('logo.png') no-repeat center;
+            background-size: contain;
+            margin-bottom: 10px;
+        }
+
+        .brand-name {
+            color: #2f3ad3;
+            font-weight: bold;
+            font-size: 22px;
+            margin-bottom: 5px;
+        }
+
+        .version {
+            color: #737be5;
+            font-size: 12px;
+        }
+
+        /* Formulário */
+        .form-container {
+            padding: 30px 25px;
+            flex: 0.6;
+        }
+
+        .input-group {
+            position: relative;
+            margin-bottom: 15px;
+        }
+
+        .input-group i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #555;
+            font-size: 18px;
+        }
+
+        .input-group .eye-icon {
+            left: auto;
+            right: 15px;
+            cursor: pointer;
+        }
+
+        input {
+            width: 100%;
+            padding: 15px 15px 15px 45px;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            background-color: #f0f0f0;
+            font-size: 16px;
+            outline: none;
+        }
+
+        /* Estilo para o campo em foco (borda vermelha como na imagem) */
+        .input-group.active input {
+            border: 2px solid #3a2fd3;
+            background-color: white;
+        }
+
+        /* Toggle Manter Logado */
+        .keep-logged {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            margin: 20px 0;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 45px;
+            height: 24px;
+            margin-left: 10px;
+        }
+
+        .switch input { display: none; }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px; width: 18px;
+            left: 3px; bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider { background-color: rgb(156, 177, 247); }
+        input:checked + .slider:before { 
+            transform: translateX(21px); 
+            background-color: #322fd3;
+        }
+
+        /* Botões */
+        .btn-enter {
+            width: 100%;
+            padding: 15px;
+            background-color: #322fd3;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-bottom: 25px;
+        }
+
+        .footer-links {
+            text-align: center;
+        }
+
+        .btn-link {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 10px;
+            background-color: #f8f8f8;
+            color: #322fd3;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        /* Seção de Validação */
+        .validation-section {
+            display: none;
+            margin-top: 20px;
+        }
+
+        .validation-option {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+
+        .validation-option i {
+            margin-right: 10px;
+            color: #322fd3;
+        }
+
+        .phone-list {
+            display: none;
+            margin-top: 10px;
+        }
+
+        .phone-item {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 5px;
+            cursor: pointer;
+        }
+
+        .no-contact-msg {
+            display: none;
+            text-align: center;
+            color: #c62828;
+            margin-top: 20px;
+        }
+
+        .no-contact-msg a {
+            color: #322fd3;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+<div class="mobile-container">
+    <div class="header">
+        <div class="logo-placeholder"></div>          
+    </div>
+
+    <div class="form-container">
+        <div class="input-group active">
+            <i class="fa-regular fa-id-card"></i>
+            <input type="text" placeholder="CPF" id="cpf">
+        </div>
+
+        <div class="input-group">
+            <i class="fa-solid fa-user"></i>
+            <input type="text" placeholder="Nome Completo" id="nome">
+        </div>
+
+        <div class="input-group">
+            <i class="fa-solid fa-envelope"></i>
+            <input type="email" placeholder="E-mail" id="email">
+        </div>
+
+        <div class="input-group">
+            <i class="fa-solid fa-phone"></i>
+            <input type="tel" placeholder="Telefone" id="telefone">
+        </div>
+
+        <div class="input-group">
+            <i class="fa-solid fa-key"></i>
+            <input type="password" placeholder="Senha" id="senha">
+            <i class="fa-regular fa-eye eye-icon"></i>
+        </div>
+
+        <button class="btn-enter" onclick="iniciarCadastro()">Cadastrar</button>
+
+        <div class="validation-section" id="validationSection">
+            <h3>Validar Cadastro</h3>
+            <div class="validation-option" onclick="enviarValidacao('email')">
+                <i class="fa-solid fa-envelope"></i>
+                <span>Validar por E-mail</span>
+            </div>
+            <div class="validation-option" onclick="mostrarTelefones()">
+                <i class="fa-solid fa-sms"></i>
+                <span>Validar por SMS</span>
+            </div>
+            <div class="phone-list" id="phoneList"></div>
+        </div>
+
+        <div class="no-contact-msg" id="noContactMsg">
+            <p>Não encontramos e-mail ou telefone cadastrado. Entre em contato com o CRC via <a href="https://wa.me/5586994183880">WhatsApp</a>.</p>
+        </div>
+
+        <div class="footer-links">
+            <a href="login.html" class="btn-link">Voltar para Login</a>
+        </div>
+    </div>
+</div>
+<script>
+    let dadosContato = {};
+
+    function carregarDadosContato() {
+        let jsonString = '';
+        if (typeof Android !== 'undefined' && Android.getDadosContato) {
+            jsonString = Android.getDadosContato(); // Retorna JSON com {emails: ["exemplo@email.com"], telefones: ["(86) 9****-****", "(86) 9****-****"]}
+        } else {
+            // JSON de exemplo para teste
+            jsonString = JSON.stringify({
+                emails: ["exemplo@email.com"],
+                telefones: ["(86) 9****-****", "(86) 3****-****"]
+            });
+        }
+
+        dadosContato = JSON.parse(jsonString);
+
+        // Se não houver e-mails nem telefones, mostrar mensagem
+        if (dadosContato.emails.length === 0 && dadosContato.telefones.length === 0) {
+            document.getElementById('noContactMsg').style.display = 'block';
+            document.getElementById('validationSection').style.display = 'none';
+        } else {
+            document.getElementById('validationSection').style.display = 'block';
+        }
+    }
+
+    function iniciarCadastro() {
+        const cpf = document.getElementById('cpf').value;
+        const nome = document.getElementById('nome').value;
+        const email = document.getElementById('email').value;
+        const telefone = document.getElementById('telefone').value;
+        const senha = document.getElementById('senha').value;
+
+        // Validação básica (pode ser expandida)
+        if (!cpf || !nome || !senha) {
+            alert('Preencha todos os campos obrigatórios.');
+            return;
+        }
+
+        // Chama Android para salvar dados preliminares, se necessário
+        if (typeof Android !== 'undefined' && Android.salvarDadosCadastro) {
+            Android.salvarDadosCadastro(JSON.stringify({ cpf, nome, email, telefone, senha }));
+        }
+
+        // Carrega opções de contato para validação
+        carregarDadosContato();
+    }
+
+    function mostrarTelefones() {
+        const phoneList = document.getElementById('phoneList');
+        phoneList.innerHTML = '';
+        dadosContato.telefones.forEach((tel, index) => {
+            const item = document.createElement('div');
+            item.className = 'phone-item';
+            item.textContent = tel;
+            item.onclick = () => enviarValidacao('sms', index);
+            phoneList.appendChild(item);
+        });
+        phoneList.style.display = 'block';
+    }
+
+    function enviarValidacao(metodo, index = null) {
+        if (typeof Android !== 'undefined' && Android.enviarCodigoValidacao) {
+            Android.enviarCodigoValidacao(metodo, index); // Envia código via Android
+            alert(`Código enviado por ${metodo.toUpperCase()}.`);
+            // Redireciona para tela de verificação de código, se necessário
+        } else {
+            alert(`Simulando envio por ${metodo.toUpperCase()}.`);
+        }
+    }
+</script>
+</body>
+</html>
