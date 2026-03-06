@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -158,7 +159,8 @@
             text-decoration: none;
             font-weight: 500;
         }
- /* Tela de carregamento (Overlay) */
+
+        /* Tela de carregamento (Overlay) */
         .loading-overlay {
             display: none;
             position: fixed;
@@ -185,222 +187,233 @@
         }
 
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
         }
 
         /* Estilo para botão desabilitado */
         .btn-main:disabled {
             background-color: #ccc;
             cursor: not-allowed;
-        }                
+        }
     </style>
 </head>
+
 <body>
-<div id="id-loading" class="loading-overlay">
-    <div class="spinner" id="loading-spinner"></div>
-    <i class="fa-solid fa-circle-check" id="success-icon" style="display: none; font-size: 50px; color: #2ecc71; margin-bottom: 10px;"></i>
-    <span id="loading-text">Buscando informações...</span>
-</div>    
-<div class="mobile-container">
-    <div class="header">
-        <div class="logo-placeholder"></div>
-        <div class="title">Verificar Código</div>
-        <p class="subtitle" id="subtitleText">
-            Digite o código de 6 dígitos enviado para<br>
-            <strong id="destination">seu e-mail / telefone</strong>
-        </p>
+    <div id="id-loading" class="loading-overlay">
+        <div class="spinner" id="loading-spinner"></div>
+        <i class="fa-solid fa-circle-check" id="success-icon"
+            style="display: none; font-size: 50px; color: #2ecc71; margin-bottom: 10px;"></i>
+        <span id="loading-text">Buscando informações...</span>
+    </div>
+    <div class="mobile-container">
+        <div class="header">
+            <div class="logo-placeholder"></div>
+            <div class="title">Verificar Código</div>
+            <p class="subtitle" id="subtitleText">
+                Digite o código de 6 dígitos enviado para<br>
+                <strong id="destination">seu e-mail / telefone</strong>
+            </p>
+        </div>
+
+        <div class="form-container">
+            <div class="code-container" id="codeContainer">
+                <input type="text" class="code-input" maxlength="1" autocomplete="off" inputmode="numeric" id="code1"
+                    autofocus>
+                <input type="text" class="code-input" maxlength="1" autocomplete="off" inputmode="numeric" id="code2">
+                <input type="text" class="code-input" maxlength="1" autocomplete="off" inputmode="numeric" id="code3">
+                <input type="text" class="code-input" maxlength="1" autocomplete="off" inputmode="numeric" id="code4">
+                <input type="text" class="code-input" maxlength="1" autocomplete="off" inputmode="numeric" id="code5">
+                <input type="text" class="code-input" maxlength="1" autocomplete="off" inputmode="numeric" id="code6">
+            </div>
+
+            <div class="resend-container">
+                Não recebeu o código?
+                <span class="resend-link" id="resendLink" onclick="resendCode()">Reenviar</span>
+                <span id="countdown" style="display:none;">(aguarde <span id="timer">60</span>s)</span>
+            </div>
+
+            <button class="btn-verify" id="verifyBtn" disabled onclick="verifyCode()">Verificar Código</button>
+
+            <div class="error-message" id="errorMsg">
+                Código inválido. Tente novamente.
+            </div>
+
+            <div class="back-link">
+                <a href="javascript:history.back()">Voltar</a>
+            </div>
+        </div>
     </div>
 
-    <div class="form-container">
-        <div class="code-container" id="codeContainer">
-            <input type="text" class="code-input" maxlength="1" autocomplete="off" inputmode="numeric" id="code1" autofocus>
-            <input type="text" class="code-input" maxlength="1" autocomplete="off" inputmode="numeric" id="code2">
-            <input type="text" class="code-input" maxlength="1" autocomplete="off" inputmode="numeric" id="code3">
-            <input type="text" class="code-input" maxlength="1" autocomplete="off" inputmode="numeric" id="code4">
-            <input type="text" class="code-input" maxlength="1" autocomplete="off" inputmode="numeric" id="code5">
-            <input type="text" class="code-input" maxlength="1" autocomplete="off" inputmode="numeric" id="code6">
-        </div>
+    <script>
 
-        <div class="resend-container">
-            Não recebeu o código? 
-            <span class="resend-link" id="resendLink" onclick="resendCode()">Reenviar</span>
-            <span id="countdown" style="display:none;">(aguarde <span id="timer">60</span>s)</span>
-        </div>
+        // 1. Gerenciador de UI (Loading e Sucesso)
+        function updateLoader(text, showSpinner = true, showSuccess = false) {
+            const loader = document.getElementById('id-loading');
+            const spinner = document.getElementById('loading-spinner');
+            const successIcon = document.getElementById('success-icon');
+            const label = document.getElementById('loading-text');
 
-        <button class="btn-verify" id="verifyBtn" disabled onclick="verifyCode()">Verificar Código</button>
-
-        <div class="error-message" id="errorMsg">
-            Código inválido. Tente novamente.
-        </div>
-
-        <div class="back-link">
-            <a href="javascript:history.back()">Voltar</a>
-        </div>
-    </div>
-</div>
-
-<script>
-
-    // 1. Gerenciador de UI (Loading e Sucesso)
-    function updateLoader(text, showSpinner = true, showSuccess = false) {
-        const loader = document.getElementById('id-loading');
-        const spinner = document.getElementById('loading-spinner');
-        const successIcon = document.getElementById('success-icon');
-        const label = document.getElementById('loading-text');
-
-        loader.style.display = 'flex';
-        label.innerText = text;
-        spinner.style.display = showSpinner ? 'block' : 'none';
-        successIcon.style.display = showSuccess ? 'block' : 'none';
-    }
-
-    function toggleLoading(show) {
-        const btn = document.querySelector('.btn-verify');
-        if (show) {
-            // Resetar para estado inicial de busca            
-            updateLoader("Buscando informações...", true, false);
-            btn.disabled = true;
-        } else {
-            document.getElementById('id-loading').style.display = 'none';
-            btn.disabled = false;
+            loader.style.display = 'flex';
+            label.innerText = text;
+            spinner.style.display = showSpinner ? 'block' : 'none';
+            successIcon.style.display = showSuccess ? 'block' : 'none';
         }
-    }    
-    const inputs = document.querySelectorAll('.code-input');
-    const verifyBtn = document.getElementById('verifyBtn');
-    const errorMsg = document.getElementById('errorMsg');
-    const resendLink = document.getElementById('resendLink');
-    const countdownEl = document.getElementById('countdown');
-    const timerEl = document.getElementById('timer');
 
-    // Captura os parâmetros da URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const cpfUsuario = urlParams.get('cpf') || ""; // Retorna o valor do CPF ou vazio se não existir    
-
-    let countdown = 60;
-    let timerInterval = null;
-
-    // Navegação automática entre os campos
-    inputs.forEach((input, index) => {
-        input.addEventListener('input', (e) => {
-            if (e.target.value.length === 1) {
-                if (index < inputs.length - 1) {
-                    inputs[index + 1].focus();
-                }
+        function toggleLoading(show) {
+            const btn = document.querySelector('.btn-verify');
+            if (show) {
+                // Resetar para estado inicial de busca            
+                updateLoader("Buscando informações...", true, false);
+                btn.disabled = true;
+            } else {
+                document.getElementById('id-loading').style.display = 'none';
+                btn.disabled = false;
             }
-            checkIfComplete();
-        });
+        }
+        const inputs = document.querySelectorAll('.code-input');
+        const verifyBtn = document.getElementById('verifyBtn');
+        const errorMsg = document.getElementById('errorMsg');
+        const resendLink = document.getElementById('resendLink');
+        const countdownEl = document.getElementById('countdown');
+        const timerEl = document.getElementById('timer');
 
-        input.addEventListener('keydown', (e) => {
-            if (e.key === 'Backspace' && e.target.value === '' && index > 0) {
-                inputs[index - 1].focus();
-            }
-        });
+        // Captura os parâmetros da URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const cpfUsuario = urlParams.get('cpf') || ""; // Retorna o valor do CPF ou vazio se não existir    
 
-        input.addEventListener('paste', (e) => {
-            e.preventDefault();
-            const pasteData = (e.clipboardData || window.clipboardData).getData('text');
-            const digits = pasteData.replace(/\D/g, '').slice(0, 6);
-            
-            if (digits.length > 0) {
-                digits.split('').forEach((digit, i) => {
-                    if (index + i < inputs.length) {
-                        inputs[index + i].value = digit;
+        let countdown = 60;
+        let timerInterval = null;
+
+        // Navegação automática entre os campos
+        inputs.forEach((input, index) => {
+            input.addEventListener('input', (e) => {
+                if (e.target.value.length === 1) {
+                    if (index < inputs.length - 1) {
+                        inputs[index + 1].focus();
                     }
-                });
-                const nextFocus = Math.min(index + digits.length, inputs.length - 1);
-                inputs[nextFocus].focus();
+                }
                 checkIfComplete();
+            });
+
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Backspace' && e.target.value === '' && index > 0) {
+                    inputs[index - 1].focus();
+                }
+            });
+
+            input.addEventListener('paste', (e) => {
+                e.preventDefault();
+                const pasteData = (e.clipboardData || window.clipboardData).getData('text');
+                const digits = pasteData.replace(/\D/g, '').slice(0, 6);
+
+                if (digits.length > 0) {
+                    digits.split('').forEach((digit, i) => {
+                        if (index + i < inputs.length) {
+                            inputs[index + i].value = digit;
+                        }
+                    });
+                    const nextFocus = Math.min(index + digits.length, inputs.length - 1);
+                    inputs[nextFocus].focus();
+                    checkIfComplete();
+                }
+            });
+        });
+
+        function checkIfComplete() {
+            const code = Array.from(inputs).map(i => i.value).join('');
+            verifyBtn.disabled = code.length !== 6;
+            errorMsg.style.display = 'none';
+        }
+
+        function verifyCode() {
+            const code = Array.from(inputs).map(i => i.value).join('');
+
+            if (code.length !== 6) return;
+
+            toggleLoading(true);
+            // Chamada para o Android passando (CPF, CÓDIGO)
+            if (typeof Android !== 'undefined' && Android.verificarCodigo) {
+                // O CPF capturado da URL entra como primeiro parâmetro
+
+                if (Android.verificarCodigo(cpfUsuario, code)) {
+                   /// updateLoader("Código válido!", false, true);
+                    /*
+                    setTimeout(() => {
+                        // (NÃO gera histórico)
+                        window.location.replace("login_nova_senha.html?cpf=" + cpfUsuario + "&code=" + code);
+                    }, 1500);
+                    */
+                } else {
+                    toggleLoading(false);
+                    errorMsg.style.display = 'block';
+                    inputs.forEach(i => i.value = '');
+                    inputs[0].focus();
+                };
+            } else {
+                setTimeout(() => { // Simulação caso teste no navegador
+                    toggleLoading(false);
+                    // Simulação para testes no navegador
+                    console.log('Dados enviados:', { cpf: cpfUsuario, codigo: code });
+
+                    if (code === '123456') {
+                        alert('Código válido para o CPF ' + cpfUsuario);
+                        // Lembre-se do que conversamos: se for mudar de página aqui, 
+                        // use window.location.replace('proxima_pagina.html');
+                    } else {
+                        errorMsg.style.display = 'block';
+                        inputs.forEach(i => i.value = '');
+                        inputs[0].focus();
+                    }
+                }, 1000);
+
+            }
+        }
+
+        function resendCode() {
+            if (resendLink.classList.contains('disabled')) return;
+
+            // Desabilita o link e inicia contagem
+            resendLink.classList.add('disabled');
+            countdownEl.style.display = 'inline';
+            timerEl.textContent = countdown;
+
+            timerInterval = setInterval(() => {
+                countdown--;
+                timerEl.textContent = countdown;
+                if (countdown <= 0) {
+                    clearInterval(timerInterval);
+                    resendLink.classList.remove('disabled');
+                    countdownEl.style.display = 'none';
+                    countdown = 60;
+                }
+            }, 1000);
+
+            // Chama Android para reenviar código
+            if (typeof Android !== 'undefined' && Android.reenviarCodigo) {
+                Android.reenviarCodigo();
+            } else {
+                alert('Código reenviado (simulação).');
+            }
+        }
+
+        // Preenche o texto de destino (email ou telefone mascarado)
+        window.addEventListener('load', () => {
+            if (typeof Android !== 'undefined' && Android.getDestinoVerificacao) {
+                const destino = Android.getDestinoVerificacao();
+                document.getElementById('destination').textContent = destino;
+            } else {
+                // Exemplo fallback
+                document.getElementById('destination').textContent = 'exemplo@email.com';
             }
         });
-    });
-
-    function checkIfComplete() {
-        const code = Array.from(inputs).map(i => i.value).join('');
-        verifyBtn.disabled = code.length !== 6;
-        errorMsg.style.display = 'none';
-    }
-
-    function verifyCode() {
-        const code = Array.from(inputs).map(i => i.value).join('');
-        
-        if (code.length !== 6) return;
-
-        toggleLoading(true);
-        // Chamada para o Android passando (CPF, CÓDIGO)
-        if (typeof Android !== 'undefined' && Android.verificarCodigo) {
-            // O CPF capturado da URL entra como primeiro parâmetro
-            
-            if (Android.verificarCodigo(cpfUsuario, code)){
-                updateLoader("Código válido!", false, true);
-                setTimeout(() => {
-                    // (NÃO gera histórico)
-                    window.location.replace("login_nova_senha.html?cpf=" + cpfUsuario + "&code=" + code);                    
-                }, 1500);
-            } else {
-                toggleLoading(false);
-                errorMsg.style.display = 'block';
-                inputs.forEach(i => i.value = '');
-                inputs[0].focus();
-            }; 
-        } else {
-            setTimeout(() => { // Simulação caso teste no navegador
-                toggleLoading(false);
-// Simulação para testes no navegador
-            console.log('Dados enviados:', { cpf: cpfUsuario, codigo: code });
-            
-            if (code === '123456') { 
-                alert('Código válido para o CPF ' + cpfUsuario);
-                // Lembre-se do que conversamos: se for mudar de página aqui, 
-                // use window.location.replace('proxima_pagina.html');
-            } else {
-                errorMsg.style.display = 'block';
-                inputs.forEach(i => i.value = '');
-                inputs[0].focus();
-            }                
-            }, 1000);            
-            
-        }
-    }
-
-    function resendCode() {
-        if (resendLink.classList.contains('disabled')) return;
-
-        // Desabilita o link e inicia contagem
-        resendLink.classList.add('disabled');
-        countdownEl.style.display = 'inline';
-        timerEl.textContent = countdown;
-
-        timerInterval = setInterval(() => {
-            countdown--;
-            timerEl.textContent = countdown;
-            if (countdown <= 0) {
-                clearInterval(timerInterval);
-                resendLink.classList.remove('disabled');
-                countdownEl.style.display = 'none';
-                countdown = 60;
-            }
-        }, 1000);
-
-        // Chama Android para reenviar código
-        if (typeof Android !== 'undefined' && Android.reenviarCodigo) {
-            Android.reenviarCodigo();
-        } else {
-            alert('Código reenviado (simulação).');
-        }
-    }
-
-    // Preenche o texto de destino (email ou telefone mascarado)
-    window.addEventListener('load', () => {
-        if (typeof Android !== 'undefined' && Android.getDestinoVerificacao) {
-            const destino = Android.getDestinoVerificacao();
-            document.getElementById('destination').textContent = destino;
-        } else {
-            // Exemplo fallback
-            document.getElementById('destination').textContent = 'exemplo@email.com';
-        }
-    });
-</script>
+    </script>
 
 </body>
+
 </html>

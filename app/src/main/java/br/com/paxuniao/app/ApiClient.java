@@ -2,12 +2,8 @@ package br.com.paxuniao.app;
 
 import android.os.Handler;
 import android.os.Looper;
-
 import org.json.JSONObject;
-import org.json.JSONArray;
-
 import java.io.IOException;
-
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -41,7 +37,9 @@ public class ApiClient {
     // ===============================
     // GERAR TOKEN
     // ===============================
-    public void gerarToken(String appKey, String authorization, ApiCallback callback) {
+    public void gerarToken(ApiCallback callback) {
+        String appKey =  Parametros.appKey;
+        String authorization = Parametros.authorization;
 
         try {
             JSONObject json = new JSONObject();
@@ -88,15 +86,39 @@ public class ApiClient {
         }
     }
 
+    public void recuperar_verifica(String accessToken, String cpf, String code, ApiCallback callback) {
+
+        try {
+            JSONObject json = new JSONObject();
+            json.put("access_token", accessToken);
+            json.put("cpf", cpf);
+            json.put("code", code);
+
+            RequestBody body = RequestBody.create(json.toString(), JSON);
+
+            Request request = new Request.Builder()
+                    .url(BASE_URL + "/app/recupera/verifica")
+                    .post(body)
+                    .addHeader("Content-Type", "application/json")
+                    .build();
+
+            client.newCall(request).enqueue(new DefaultCallback(callback));
+
+        } catch (Exception e) {
+            callback.onError(e.getMessage());
+        }
+    }
+
     // ===============================
-    // /app/recupera_email
+    // /app/recupera/email
     // ===============================
-    public void recuperarEmail(String cpfLimpo, String accessToken, String email, ApiCallback callback) {
+    public void recuperarEmail(String cpfLimpo, String accessToken, String email, String cliCodigo, ApiCallback callback) {
         try {
             JSONObject json = new JSONObject();
             json.put("access_token", accessToken); // O token gerado previamente
             json.put("email", email); // O e-mail selecionado pelo usuário
             json.put("cpf", cpfLimpo);
+            json.put("cli_codigo", cliCodigo); // NOVO: Enviando o código do cliente
 
             RequestBody body = RequestBody.create(json.toString(), JSON);
 
@@ -113,14 +135,15 @@ public class ApiClient {
     }
 
     // ===============================
-    // /app/recupera_fone
+    // /app/recupera/fone
     // ===============================
-    public void recuperarFone(String cpfLimpo, String accessToken, String fone, ApiCallback callback) {
+    public void recuperarFone(String cpfLimpo, String accessToken, String fone, String seq, ApiCallback callback) {
         try {
             JSONObject json = new JSONObject();
             json.put("access_token", accessToken); // O token gerado previamente
             json.put("fone", fone); // O telefone selecionado, contendo DDD + Número
             json.put("cpf", cpfLimpo);
+            json.put("seq", seq); // NOVO: Enviando a sequência do telefone
 
             RequestBody body = RequestBody.create(json.toString(), JSON);
 
@@ -131,6 +154,32 @@ public class ApiClient {
                     .build();
 
             client.newCall(request).enqueue(new DefaultCallback(callback));
+        } catch (Exception e) {
+            callback.onError(e.getMessage());
+        }
+    }
+
+    // ===============================
+    // /app/recupera/setpass (Exemplo de endpoint)
+    // ===============================
+    public void alterarSenha(String accessToken, String cpf, String code, String novaSenha, ApiCallback callback) {
+        try {
+            JSONObject json = new JSONObject();
+            json.put("access_token", accessToken);
+            json.put("cpf", cpf);
+            json.put("code", code);
+            json.put("senha", novaSenha); // ATENÇÃO: Altere "senha" para o nome do campo que sua API backend espera
+
+            RequestBody body = RequestBody.create(json.toString(), JSON);
+
+            Request request = new Request.Builder()
+                    .url(BASE_URL + "/app/recupera/setpass") // ATENÇÃO: Confirme se esta é a URL correta da sua API
+                    .post(body)
+                    .addHeader("Content-Type", "application/json")
+                    .build();
+
+            client.newCall(request).enqueue(new DefaultCallback(callback));
+
         } catch (Exception e) {
             callback.onError(e.getMessage());
         }

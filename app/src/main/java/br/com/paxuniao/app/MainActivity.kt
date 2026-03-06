@@ -8,7 +8,6 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.Toast
 import androidx.activity.ComponentActivity
-import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -24,7 +23,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.AndroidView
 import br.com.paxuniao.app.ui.theme.ClientesTheme
-
 
 class MainActivity : ComponentActivity() {
 
@@ -46,7 +44,7 @@ class MainActivity : ComponentActivity() {
                     // Chamada da WebView passando o preenchimento do Scaffold
                     WebViewScreen(
                         url = "file:///android_asset/login.html",  // Substitua pela sua URL
-                        //url = "file:///android_asset/selecao_contrato.html",  // Substitua pela sua URL
+                        ///url = "file:///android_asset/login_verifica_codigo.html",  // Substitua pela sua URL
 
                         activity = this@MainActivity, // Passa a referência da activity
                         modifier = Modifier.padding(innerPadding),
@@ -68,48 +66,17 @@ class WebAppInterface(private val activity: ComponentActivity, private val webVi
     private var currentEmails = org.json.JSONArray()
     private var currentFones = org.json.JSONArray()
 
-    // ==========================================
-    // FUNÇÕES DE OFUSCAÇÃO
-    // ==========================================
-    private fun ofuscarEmail(email: String): String {
-        val parts = email.split("@")
-        if (parts.size != 2) return email // Retorna original se não for um e-mail válido
+    // Variáveis para guardar o estado da última solicitação de código
+    private var lastCpfSolicitado = ""
+    private var lastTipoSolicitado = ""
+    private var lastIndexSolicitado = -1
 
-        val nome = parts[0]
-        val dominio = parts[1]
+    var resposta =""
+    var code_valid = true
 
-        // Pega as 2 primeiras letras e adiciona asteriscos
-        val nomeOfuscado = if (nome.length <= 2) {
-            "$nome****"
-        } else {
-            nome.substring(0, 2) + "****"
-        }
-
-        return "$nomeOfuscado@$dominio"
-    }
-
-    private fun ofuscarTelefone(ddd: String, fone: String): String {
-        // Ex: 999983804 (9 dígitos) -> 9****-3804
-        // Ex: 99983804 (8 dígitos) -> ****-3804
-        return if (fone.length == 9) {
-            "($ddd) ${fone.substring(0, 1)}****-${fone.substring(5)}"
-        } else if (fone.length == 8) {
-            "($ddd) ****-${fone.substring(4)}"
-        } else {
-            "($ddd) $fone" // Fallback caso tenha tamanho fora do padrão
-        }
-    }
-
-    // ==========================================
-    // AJUSTE NA FUNÇÃO buscarDadosPorCPF
-    // ==========================================
     @JavascriptInterface
     fun buscarDadosPorCPF(cpf: String) {
-        val appKey =  Parametros.appKey
-        val authorization = Parametros.authorization
-
-
-        apiClient.gerarToken(appKey, authorization, object : ApiClient.ApiCallback {
+        apiClient.gerarToken( object : ApiClient.ApiCallback {
             override fun onSuccess(response: org.json.JSONObject) {
                 lastToken = response.getString("access_token")
 
@@ -118,26 +85,29 @@ class WebAppInterface(private val activity: ComponentActivity, private val webVi
                         currentEmails = recuperaResp.optJSONArray("emails") ?: org.json.JSONArray()
                         currentFones = recuperaResp.optJSONArray("fones") ?: org.json.JSONArray()
 
-                        // 1. Aplica a ofuscação
+                        // 1. Lendo corretamente os objetos JSON
                         val formattedEmails = org.json.JSONArray()
                         for (i in 0 until currentEmails.length()) {
-                            val emailOriginal = currentEmails.getString(i)
-                            formattedEmails.put(ofuscarEmail(emailOriginal))
+                            // Pegamos o objeto e extraímos apenas o campo do e-mail
+                            val emailObj = currentEmails.getJSONObject(i)
+                            val emailOriginal = emailObj.getString("cli_email")
+                            formattedEmails.put(emailOriginal)
                         }
 
                         val formattedFones = org.json.JSONArray()
                         for (i in 0 until currentFones.length()) {
+                            // Pegamos o objeto e extraímos o ddd e fone
                             val foneObj = currentFones.getJSONObject(i)
                             val ddd = foneObj.getString("ddd")
                             val fone = foneObj.getString("fone")
-                            formattedFones.put(ofuscarTelefone(ddd, fone))
+                            formattedFones.put(ddd + fone)
                         }
 
                         val resultJson = org.json.JSONObject()
                         resultJson.put("emails", formattedEmails)
                         resultJson.put("telefones", formattedFones)
 
-                        // 2. Converte para Base64 para envio seguro (evita SyntaxError no JS)
+                        // 2. Converte para Base64 para envio seguro para o JS
                         val jsonString = resultJson.toString()
                         val base64Json = android.util.Base64.encodeToString(
                             jsonString.toByteArray(Charsets.UTF_8),
@@ -146,7 +116,7 @@ class WebAppInterface(private val activity: ComponentActivity, private val webVi
 
                         // 3. Envia para o JS
                         webView.post {
-                            Log.i("dados","receberDadosBase64('$base64Json')")
+                            Log.i("dados", "receberDadosBase64('$base64Json')")
                             webView.evaluateJavascript("receberDadosBase64('$base64Json')", null)
                         }
                     }
@@ -164,46 +134,197 @@ class WebAppInterface(private val activity: ComponentActivity, private val webVi
     }
 
     @JavascriptInterface
+    fun setpass(code: String, pass: String, cpf: String) {
+        Log.i("setpass", "Solicitando alteração de senha para CPF: $cpf")
+
+        // 1. Gera um token novo para garantir que a requisição seja autorizada
+        apiClient.gerarToken(object : ApiClient.ApiCallback {
+            override fun onSuccess(response: org.json.JSONObject) {
+                lastToken = response.getString("access_token")
+
+                // 2. Chama a API para alterar a senha
+                apiClient.alterarSenha(lastToken, cpf, code, pass, object : ApiClient.ApiCallback {
+                    override fun onSuccess(setPassResp: org.json.JSONObject) {
+                        val respStatus = setPassResp.optString("resp")
+
+                        if (respStatus == "ok") {
+                            // Sucesso! Mostra a mensagem e redireciona o WebView para a tela de login
+                            showToast("Senha alterada com sucesso!")
+
+                            webView.post {
+                                webView.loadUrl("file:///android_asset/login.html")
+                            }
+                        } else {
+                            // Captura a mensagem de erro da API (Ex: "Código expirado" ou "Senha fraca")
+                            val msgErro = setPassResp.optString("msg", "Erro ao alterar a senha.")
+                            showToast(msgErro)
+
+                            // Opcional: Avisar o JS que deu erro para tirar a tela de loading
+                            // webView.post { webView.evaluateJavascript("toggleLoading(false);", null) }
+                        }
+                    }
+
+                    override fun onError(error: String) {
+                        showToast("Erro de conexão ao alterar senha: $error")
+                    }
+                })
+            }
+
+            override fun onError(error: String) {
+                showToast("Erro de autenticação (Token): $error")
+            }
+        })
+    }
+
+    @JavascriptInterface
     fun enviarCodigoRecuperacao(cpfLimpo: String, tipo: String, index: Int) {
-        Log.i("enviarCodigoRecuperacao",cpfLimpo + ";"+ tipo +";"+ index)
-        Log.i("enviarCodigoRecuperacao",currentEmails.optString(index))
+        Log.i("enviarCodigoRecuperacao", "$cpfLimpo ; $tipo ; $index")
+
+        // 1. SALVANDO PARA UM POSSÍVEL REENVIO
+        lastCpfSolicitado = cpfLimpo
+        lastTipoSolicitado = tipo
+        lastIndexSolicitado = index
+
         if (lastToken.isEmpty()) {
             showToast("Token inválido. Busque o CPF novamente.")
             return
         }
 
         if (tipo == "email") {
-            val resultJson = org.json.JSONObject(currentEmails.optString(index))
-            val email = resultJson.getString("cli_email")
-            // Envia o e-mail completo para a API
-            apiClient.recuperarEmail(cpfLimpo,lastToken, email, object : ApiClient.ApiCallback {
-                override fun onSuccess(response: org.json.JSONObject) {
-                    showToast("E-mail de recuperação enviado!")
-                }
-                override fun onError(error: String) {
-                    showToast("Erro ao enviar e-mail: $error")
-                }
-            })
+            val emailObj = currentEmails.optJSONObject(index)
+            if (emailObj != null) {
+                val email = emailObj.getString("cli_email")
+                val cliCodigo = emailObj.getString("cli_codigo")
+
+                apiClient.recuperarEmail(cpfLimpo, lastToken, email, cliCodigo, object : ApiClient.ApiCallback {
+                    override fun onSuccess(response: org.json.JSONObject) {
+                        val respStatus = response.optString("resp")
+                        if (respStatus == "er") {
+                            val msgErro = response.optString("msg", "Erro ao enviar e-mail.")
+                            showToast(msgErro)
+                        } else {
+                            showToast("E-mail de recuperação enviado!")
+                        }
+                    }
+                    override fun onError(error: String) {
+                        showToast("Erro de conexão: $error")
+                    }
+                })
+            }
         } else if (tipo == "sms") {
             val foneObj = currentFones.optJSONObject(index)
             if (foneObj != null) {
-                // Junta DDD e Telefone para enviar para a API
                 val numeroCompleto = foneObj.getString("ddd") + foneObj.getString("fone")
-                apiClient.recuperarFone(cpfLimpo,lastToken, numeroCompleto, object : ApiClient.ApiCallback {
+                val seq = foneObj.getInt("seq")
+
+                apiClient.recuperarFone(cpfLimpo, lastToken, numeroCompleto, seq.toString(), object : ApiClient.ApiCallback {
                     override fun onSuccess(response: org.json.JSONObject) {
-                        showToast("SMS de recuperação enviado!")
+                        val respStatus = response.optString("resp")
+                        if (respStatus == "er") {
+                            val msgErro = response.optString("msg", "Erro ao enviar SMS.")
+                            showToast(msgErro)
+                        } else {
+                            showToast("SMS de recuperação enviado!")
+                        }
                     }
                     override fun onError(error: String) {
-                        showToast("Erro ao enviar SMS: $error")
+                        showToast("Erro de conexão: $error")
                     }
                 })
             }
         }
     }
-    @android.webkit.JavascriptInterface
+
+    @JavascriptInterface
+    fun reenviarCodigo() {
+        if (lastCpfSolicitado.isNotEmpty() && lastTipoSolicitado.isNotEmpty() && lastIndexSolicitado != -1) {
+            // Reaproveita a função de envio com os dados salvos em memória
+            enviarCodigoRecuperacao(lastCpfSolicitado, lastTipoSolicitado, lastIndexSolicitado)
+        } else {
+            showToast("Erro ao reenviar: dados da solicitação anterior não encontrados.")
+        }
+    }
+
+    @JavascriptInterface
+    fun getDestinoVerificacao(): String {
+        try {
+            if (lastTipoSolicitado == "email" && lastIndexSolicitado != -1) {
+                val emailObj = currentEmails.optJSONObject(lastIndexSolicitado)
+                if (emailObj != null) {
+                    val emailOriginal = emailObj.getString("cli_email")
+                    // Utiliza sua função já existente para ofuscar
+                    return emailOriginal
+                }
+            } else if (lastTipoSolicitado == "sms" && lastIndexSolicitado != -1) {
+                val foneObj = currentFones.optJSONObject(lastIndexSolicitado)
+                if (foneObj != null) {
+                    val ddd = foneObj.getString("ddd")
+                    val fone = foneObj.getString("fone")
+                    // Utiliza sua função já existente para ofuscar
+                    return ddd + fone
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("getDestinoVerificacao", "Erro ao recuperar destino: ${e.message}")
+        }
+
+        // Retorno de fallback caso algo dê errado
+        return "seu e-mail / telefone"
+    }
+
+    @JavascriptInterface
     fun verificarCodigo(cpf :String, code :String): Boolean {
-        showToast("Código: $cpf e $code")
-        if (code=="123456"){
+        //showToast("Código: $cpf e $code");
+        //val cpf="64293840397";
+        try {
+            apiClient.gerarToken( object : ApiClient.ApiCallback {
+                override fun onSuccess(response: org.json.JSONObject) {
+                    lastToken = response.getString("access_token")
+                    apiClient.recuperar_verifica(
+                        lastToken,
+                        cpf,
+                        code,
+                        object : ApiClient.ApiCallback {
+                            override fun onSuccess(recuperaResp: org.json.JSONObject) {
+                                resposta = recuperaResp.get("resp").toString()
+                                //showToast("Código: $resposta");
+                                if (resposta == "ok") {
+                                    code_valid = true
+                                    ///"login_nova_senha.html?cpf=" + cpfUsuario + "&code=" + code);
+                                    webView.post {
+                                        webView.loadUrl("file:///android_asset/login_nova_senha.html?cpf=" + cpf + "&code=" + code)
+                                    }
+                                } else {
+                                    showToast("Código inválido")
+                                    webView.post {
+                                        webView.evaluateJavascript("toggleLoading(false)", null)
+                                    }
+                                }
+                            }
+
+                            override fun onError(error: String) {
+                                showToast("Erro ao buscar CPF: $error")
+                                webView.post {
+                                    webView.evaluateJavascript("toggleLoading(false)", null)
+                                }
+
+                            }
+                        })
+                }
+
+                override fun onError(error: String) {
+                    showToast("Erro de autenticação: $error")
+                    webView.post {
+                        webView.evaluateJavascript("toggleLoading(false)", null)
+                    }
+                }
+            })
+        } catch (e: Exception) {
+            showToast("Erro ao verificar código: ${e.message}")
+        }
+
+
+        if (code_valid){
             return true
         } else {
             return false
