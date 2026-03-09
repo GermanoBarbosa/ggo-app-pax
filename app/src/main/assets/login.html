@@ -3,320 +3,162 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login PAX União</title>
+    <title>Login - PAX União</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, sans-serif; }
+        body { background-color: #fdfaf5; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        
+        .mobile-container { width: 100%; max-width: 400px; background-color: white; display: flex; flex-direction: column; min-height: 100vh; }
 
-        body {
-            background-color: #fdfaf5; /* Fundo levemente creme */
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
+        .header { background-color: #fff6e9; padding: 40px 20px 20px; text-align: center; }
+        .logo-placeholder { width: 220px; height: 70px; background: url('logo.png') no-repeat center; background-size: contain; margin: 0 auto; }
 
-        .mobile-container {
-            width: 100%;
-            max-width: 400px;
-            height: 100vh;
-            background-color: white;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
+        .form-container { padding: 30px 25px; flex: 1; }
+        .welcome-text { font-size: 20px; color: #2f3ad3; font-weight: bold; margin-bottom: 5px; text-align: center; }
+        .instruction-text { font-size: 14px; color: #666; margin-bottom: 25px; text-align: center; }
 
-        /* Seção do Topo/Logo */
-        .header {
-            background-color: #fff6e9;
-            padding: 10px 20px; 
-            margin-top: 10px;
-            text-align: center;
-            flex: 0.2;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-        }
+        .input-group { position: relative; margin-bottom: 15px; }
+        .input-group i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #322fd3; }
+        .input-group .toggle-pass { left: auto; right: 15px; cursor: pointer; color: #aaa; }
 
-        .logo-placeholder {
-            width: 235px;
-            height: 60px;
-            background: url('logo.png') no-repeat center;
-            background-size: contain;
-            margin-bottom: 10px;
+        input[type="tel"], input[type="password"], input[type="text"] {
+            width: 100%; padding: 15px 45px; border-radius: 10px; border: 1px solid #ddd;
+            background-color: #f8f8f8; font-size: 16px; outline: none; transition: 0.2s;
         }
+        input:focus { border-color: #322fd3; background-color: #fff; }
 
-        .brand-name {
-            color: #2f3ad3;
-            font-weight: bold;
-            font-size: 22px;
-            margin-bottom: 5px;
-        }
+        .options-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; font-size: 14px; }
+        .remember-me { display: flex; align-items: center; gap: 8px; color: #555; cursor: pointer; }
+        .forgot-pass { color: #322fd3; text-decoration: none; font-weight: 500; }
 
-        .version {
-            color: #737be5;
-            font-size: 12px;
-        }
+        .btn-main { width: 100%; padding: 16px; background-color: #322fd3; color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .btn-main:disabled { background-color: #ccc; cursor: not-allowed; }
 
-        /* Formulário */
-        .form-container {
-            padding: 30px 25px;
-            flex: 0.6;
-        }
+        .error-msg { display: none; background-color: #ffebee; color: #c62828; padding: 12px; border-radius: 8px; margin-bottom: 15px; font-size: 13px; text-align: center; border: 1px solid #ffcdd2; }
 
-        .input-group {
-            position: relative;
-            margin-bottom: 15px;
-        }
-
-        .input-group i {
-            position: absolute;
-            left: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #555;
-            font-size: 18px;
-        }
-
-        .input-group .eye-icon {
-            left: auto;
-            right: 15px;
-            cursor: pointer;
-        }
-
-        input {
-            width: 100%;
-            padding: 15px 15px 15px 45px;
-            border-radius: 10px;
-            border: 1px solid #ddd;
-            background-color: #f0f0f0;
-            font-size: 16px;
-            outline: none;
-        }
-
-        .input-error {
-            border: 2px solid #e74c3c !important;
-            background-color: #fff5f5 !important;
-        }
-
-        .error-text {
-            color: #e74c3c;
-            font-size: 12px;
-            margin-top: 6px;
-            display: block;
-            padding-left: 45px;
-        }
-
-        /* Estilo para o campo em foco (borda vermelha como na imagem) */
-        .input-group.active input {
-            border: 2px solid #3a2fd3;
-            background-color: white;
-        }
-
-        /* Toggle Manter Logado */
-        .keep-logged {
-            display: flex;
-            justify-content: flex-end;
-            align-items: center;
-            margin: 20px 0;
-            font-size: 14px;
-            color: #333;
-        }
-
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 45px;
-            height: 24px;
-            margin-left: 10px;
-        }
-
-        .switch input { display: none; }
-
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background-color: #ccc;
-            transition: .4s;
-            border-radius: 24px;
-        }
-
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 18px; width: 18px;
-            left: 3px; bottom: 3px;
-            background-color: white;
-            transition: .4s;
-            border-radius: 50%;
-        }
-
-        input:checked + .slider { background-color: rgb(156, 177, 247); }
-        input:checked + .slider:before { 
-            transform: translateX(21px); 
-            background-color: #322fd3;
-        }
-
-        /* Botões */
-        .btn-enter {
-            width: 100%;
-            padding: 15px;
-            background-color: #322fd3;
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            margin-bottom: 25px;
-        }
-
-        .footer-links {
-            text-align: center;
-        }
-
-        .btn-link {
-            display: block;
-            width: 100%;
-            padding: 12px;
-            margin-bottom: 10px;
-            background-color: #f8f8f8;
-            color: #322fd3;
-            text-decoration: none;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 500;
-        }
+        /* Overlay Loading */
+        .loading-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.9); z-index: 1000; flex-direction: column; justify-content: center; align-items: center; color: #322fd3; }
+        .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #322fd3; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 10px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
+<div id="id-loading" class="loading-overlay">
+    <div class="spinner"></div>
+    <span id="loading-text">Autenticando...</span>
+</div>
+
 <div class="mobile-container">
     <div class="header">
-        <div class="logo-placeholder"></div>          
+        <div class="logo-placeholder"></div>
     </div>
 
     <div class="form-container">
-        <div class="input-group active">
-            <i class="fa-regular fa-id-card"></i>
-            <input id="cpf" type="text" placeholder="CPF" value="">
-            <span class="error-text" id="cpf-error" style="display:none">CPF inválido</span>
+        <h2 class="welcome-text">Bem-vindo(a)</h2>
+        <p class="instruction-text">Acesse sua conta para continuar.</p>
+        
+        <div class="error-msg" id="loginError">CPF ou senha inválidos.</div>
+
+        <div class="input-group">
+            <i class="fa-solid fa-address-card"></i>
+            <input type="tel" id="cpf" placeholder="CPF" maxlength="14" oninput="mascaraCPF(this)">
         </div>
 
         <div class="input-group">
-            <i class="fa-solid fa-key"></i>
-            <input type="password" placeholder="Senha">
-            <i class="fa-regular fa-eye eye-icon"></i>
+            <i class="fa-solid fa-lock"></i>
+            <input type="password" id="senha" placeholder="Senha">
+            <i class="fa-solid fa-eye toggle-pass" onclick="toggleVisibility('senha', this)"></i>
         </div>
 
-        <div class="keep-logged">
-            <span>Manter-me logado</span>
-            <label class="switch">
-                <input type="checkbox" checked>
-                <span class="slider"></span>
+        <div class="options-row">
+            <label class="remember-me">
+                <input type="checkbox" id="chkLembrar"> Lembrar senha
             </label>
+            <a href="login_recuperar_senha.html" class="forgot-pass">Esqueceu a senha?</a>
         </div>
 
-        <button class="btn-enter" onclick="Login()">Entrar</button>
-
-        <div class="footer-links">
-            <a href="#" class="btn-link" onclick="Cadastrar()">Me Cadastrar</a>
-            <a href="#" class="btn-link" onclick="RecuperarSenha()">Esqueci minha senha (Já sou cliente)</a>
-        </div>
+        <button class="btn-main" id="btnEntrar" onclick="fazerLogin()">Entrar</button>
     </div>
 </div>
+
 <script>
-    (function(){
-        function maskCPF(value){
-            var v = value.replace(/\D/g,'').slice(0,11);
-            if(v.length > 9) return v.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
-            if(v.length > 6) return v.replace(/(\d{3})(\d{3})(\d+)/, '$1.$2.$3');
-            if(v.length > 3) return v.replace(/(\d{3})(\d+)/, '$1.$2');
-            return v;
-        }
-
-        function validarCPFRaw(str){
-            var s = String(str).replace(/\D/g,'');
-            if(s.length !== 11) return false;
-            if(/^(\d)\1+$/.test(s)) return false;
-            var sum = 0;
-            for(var i=0;i<9;i++) sum += parseInt(s.charAt(i)) * (10 - i);
-            var rev = 11 - (sum % 11);
-            if(rev === 10 || rev === 11) rev = 0;
-            if(rev !== parseInt(s.charAt(9))) return false;
-            sum = 0;
-            for(var j=0;j<10;j++) sum += parseInt(s.charAt(j)) * (11 - j);
-            rev = 11 - (sum % 11);
-            if(rev === 10 || rev === 11) rev = 0;
-            if(rev !== parseInt(s.charAt(10))) return false;
-            return true;
-        }
-
-        var cpfInput = document.getElementById('cpf');
-        var cpfError = document.getElementById('cpf-error');
-
-        if(cpfInput){
-            cpfInput.addEventListener('focus', function(e){
-                try{ this.select(); }catch(e){}
-                this.parentElement.classList.add('active');
-            });
-
-            cpfInput.addEventListener('blur', function(e){
-                this.parentElement.classList.remove('active');
-                validateAndMark();
-            });
-
-            cpfInput.addEventListener('input', function(e){
-                var pos = this.selectionStart;
-                this.value = maskCPF(this.value);
-            });
-        }
-
-        function validateAndMark(){
-            if(!cpfInput) return true;
-            var ok = validarCPFRaw(cpfInput.value);
-            if(ok){
-                cpfInput.classList.remove('input-error');
-                cpfError.style.display = 'none';
-            } else {
-                cpfInput.classList.add('input-error');
-                cpfError.style.display = 'block';
+    // Executa ao carregar a página
+    window.addEventListener('load', () => {
+        // Verifica se há credenciais salvas no Android
+        if (typeof Android !== 'undefined') {
+            const cpfSalvo = Android.getSavedCpf();
+            const senhaSalva = Android.getSavedPassword();
+            
+            if (cpfSalvo && senhaSalva) {
+                document.getElementById('cpf').value = cpfSalvo;
+                document.getElementById('senha').value = senhaSalva;
+                document.getElementById('chkLembrar').checked = true;
+                mascaraCPF(document.getElementById('cpf'));
             }
-            return ok;
+        }
+    });
+
+    function toggleVisibility(id, icon) {
+        const el = document.getElementById(id);
+        if (el.type === "password") {
+            el.type = "text";
+            icon.classList.replace('fa-eye', 'fa-eye-slash');
+        } else {
+            el.type = "password";
+            icon.classList.replace('fa-eye-slash', 'fa-eye');
+        }
+    }
+
+    function mascaraCPF(i) {
+        let v = i.value.replace(/\D/g, "");
+        v = v.replace(/(\d{3})(\d)/, "$1.$2");
+        v = v.replace(/(\d{3})(\d)/, "$1.$2");
+        v = v.replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+        i.value = v;
+    }
+
+    function toggleLoading(show) {
+        document.getElementById('id-loading').style.display = show ? 'flex' : 'none';
+        document.getElementById('btnEntrar').disabled = show;
+    }
+
+    // Função chamada pelo Android se o login falhar
+    function showLoginError(msg) {
+        toggleLoading(false);
+        const errorDiv = document.getElementById('loginError');
+        errorDiv.innerText = msg;
+        errorDiv.style.display = 'block';
+    }
+
+    function fazerLogin() {
+        const cpfRaw = document.getElementById('cpf').value;
+        const cpf = cpfRaw.replace(/\D/g, "");
+        const senha = document.getElementById('senha').value;
+        const lembrar = document.getElementById('chkLembrar').checked;
+
+        if (cpf.length !== 11) {
+            showLoginError("Informe um CPF válido com 11 dígitos.");
+            return;
+        }
+        if (senha.length < 3) {
+            showLoginError("Informe sua senha.");
+            return;
         }
 
-        window.Login = function(){
-            if(cpfInput){
-                if(!validateAndMark()){
-                    cpfInput.focus();
-                    return; // não segue se CPF inválido
-                }
-            }
-            window.location.href = "./selecao_contrato.html";
-        };
+        document.getElementById('loginError').style.display = 'none';
+        toggleLoading(true);
 
-        window.Cadastrar = function(){
-            if(cpfInput){
-                if(!validateAndMark()){
-                    cpfInput.focus();
-                    return; // não segue se CPF inválido
-                }
-            }
-            window.location.href = "./login_cadastro.html";
-        };
-        
-        window.RecuperarSenha = function(){
-            window.location.href = "./login_recuperar_senha.html?cpf=" + encodeURIComponent(cpfInput.value);
-        };        
-        
-    })();
+        // Chama a ponte com o Android
+        if (typeof Android !== 'undefined' && Android.realizarLoginAndroid) {
+            Android.realizarLoginAndroid(cpf, senha, lembrar);
+        } else {
+            // Apenas para teste no navegador do PC
+            setTimeout(() => { showLoginError("Interface Android não detectada."); }, 1500);
+        }
+    }
 </script>
+
 </body>
 </html>

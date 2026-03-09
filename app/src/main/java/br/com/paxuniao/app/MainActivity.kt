@@ -148,24 +148,23 @@ class WebAppInterface(private val activity: ComponentActivity, private val webVi
                         val respStatus = setPassResp.optString("resp")
 
                         if (respStatus == "ok") {
-                            // Sucesso! Mostra a mensagem e redireciona o WebView para a tela de login
                             showToast("Senha alterada com sucesso!")
-
                             webView.post {
                                 webView.loadUrl("file:///android_asset/login.html")
                             }
                         } else {
-                            // Captura a mensagem de erro da API (Ex: "Código expirado" ou "Senha fraca")
                             val msgErro = setPassResp.optString("msg", "Erro ao alterar a senha.")
                             showToast(msgErro)
 
-                            // Opcional: Avisar o JS que deu erro para tirar a tela de loading
-                            // webView.post { webView.evaluateJavascript("toggleLoading(false);", null) }
+                            // DESCOMENTAR AQUI PARA REMOVER O LOADING NO HTML
+                            webView.post { webView.evaluateJavascript("toggleLoading(false);", null) }
                         }
                     }
 
                     override fun onError(error: String) {
                         showToast("Erro de conexão ao alterar senha: $error")
+                        // DESCOMENTAR AQUI TAMBÉM
+                        webView.post { webView.evaluateJavascript("toggleLoading(false);", null) }
                     }
                 })
             }
@@ -358,10 +357,10 @@ class WebAppInterface(private val activity: ComponentActivity, private val webVi
         // Exemplo de como você pode salvar isso internamente no banco ou Preferences
         dados.putString("CONTRATO_ATIVO", codigoContrato)
         dados.putString("CLIENTE_ATIVO", clienteAtivo)
-
+        Log.i("Contrato selecionado " + codigoContrato, codigoContrato)
         // Navega para a home. Como altera a UI, precisa rodar na thread principal
         webView.post {
-            webView.loadUrl("file:///android_asset/home.html")
+            webView.loadUrl("file:///android_asset/contrato.html")
         }
     }
 
@@ -460,6 +459,191 @@ class WebAppInterface(private val activity: ComponentActivity, private val webVi
         return dados.getJsonConveniados()
     }
 
+    // ==========================================
+    // MÉTODOS DE LOGIN E SALVAMENTO DE SENHA
+    // ==========================================
+
+    @JavascriptInterface
+    fun getSavedCpf(): String {
+        return dados.getString("SAVED_CPF") ?: ""
+    }
+
+    @JavascriptInterface
+    fun getSavedPassword(): String {
+        return dados.getString("SAVED_PASS") ?: ""
+    }
+
+    @JavascriptInterface
+    fun realizarLoginAndroid(cpf: String, pass: String, lembrar: Boolean) {
+        // 1. Gera o token padrão de autorização (se a sua API exigir isso antes do login)
+        apiClient.gerarToken(object : ApiClient.ApiCallback {
+            override fun onSuccess(response: org.json.JSONObject) {
+                lastToken = response.getString("access_token")
+
+                // 2. Chama a API de login
+                apiClient.fazerLoginApi(lastToken, cpf, pass, object : ApiClient.ApiCallback {
+                    override fun onSuccess(loginResp: org.json.JSONObject) {
+                        val respStatus = loginResp.optString("resp")
+
+                        if (respStatus == "ok") {
+                            // SUCESSO! Recupera a Session criada no VB6
+                            val sessionToken = loginResp.optString("session")
+
+                            // Salva a sessão no SQLite/SharedPreferences (Dados.java)
+                            dados.putString("SESSION_TOKEN", sessionToken)
+                            dados.putString("CPF_ATIVO", cpf) // Útil para requisições futuras
+
+                            // Lógica do Checkbox "Lembrar Senha"
+                            if (lembrar) {
+                                dados.putString("SAVED_CPF", cpf)
+                                dados.putString("SAVED_PASS", pass)
+                            } else {
+                                // Se o usuário desmarcou, apagamos do aparelho
+                                dados.putString("SAVED_CPF", "")
+                                dados.putString("SAVED_PASS", "")
+                            }
+
+                            sincronizarDadosDoServidor(
+                                cpf = cpf,
+                                accessToken = lastToken,
+                                onComplete = {
+                                    // Só redireciona quando TUDO for baixado e salvo no SQLite
+                                    webView.post {
+                                    //    if (dados.getQuantidadeClientes() >1)
+                                     //   webView.loadUrl("file:///android_asset/selecao_contrato.html")
+                                    //    else
+                                        webView.loadUrl("file:///android_asset/contrato.html")
+                                    }
+                                },
+                                onError = { erroMsg ->
+                                    // Se der erro no download dos dados, tira o loading e mostra o erro
+                                    webView.post {
+                                        webView.evaluateJavascript("showLoginError('$erroMsg');", null)
+                                    }
+                                }
+                            )
+
+                        } else {
+                            // ERRO DE SENHA OU USUÁRIO
+                            val msgErro = loginResp.optString("msg", "Usuário ou senha inválidos.")
+                            // Manda o HTML apagar o loading e exibir o erro vermelho
+                            webView.post {
+                                webView.evaluateJavascript("showLoginError('$msgErro');", null)
+                            }
+                        }
+                    }
+
+                    override fun onError(error: String) {
+                        webView.post {
+                            webView.evaluateJavascript("showLoginError('Erro de conexão ao servidor.');", null)
+                        }
+                    }
+                })
+            }
+
+            override fun onError(error: String) {
+                webView.post {
+                    webView.evaluateJavascript("showLoginError('Falha de segurança ao conectar.');", null)
+                }
+            }
+        })
+    }
+    /**
+     * Sincroniza os dados do usuário (Cliente, Dependentes e Financeiro)
+     * encadeando as requisições para garantir a ordem correta de dependência.
+     */
+    /**
+     * Sincroniza os dados do usuário (Pode retornar múltiplos clientes/contratos)
+     * Encadeia as requisições para garantir a ordem correta e aguarda todas terminarem.
+     */
+    private fun sincronizarDadosDoServidor(cpf: String, accessToken: String, onComplete: () -> Unit, onError: (String) -> Unit) {
+        // 1. Busca os dados principais (Retorna o Array de Clientes)
+        apiClient.buscarDadosCliente(accessToken, cpf, object : ApiClient.ApiCallback {
+            override fun onSuccess(clienteResp: org.json.JSONObject) {
+                try {
+                    val respStatus = clienteResp.optString("resp")
+                    if (respStatus == "er") {
+                        onError(clienteResp.optString("msg", "Erro ao buscar os contratos."))
+                        return
+                    }
+
+                    val dadosArray = clienteResp.optJSONArray("dados")
+                    if (dadosArray == null || dadosArray.length() == 0) {
+                        onError("Nenhum contrato encontrado para este CPF.")
+                        return
+                    }
+
+                    val totalClientes = dadosArray.length()
+                    var clientesProcessados = 0
+                    var ocorreuErro = false // Flag para evitar chamar onError múltiplas vezes
+                    dados.apagacliantes()
+                    // Loop por cada contrato/cliente retornado no JSON
+                    for (i in 0 until totalClientes) {
+                        val cliJson = dadosArray.getJSONObject(i)
+                        val cliCodigo = cliJson.optString("CLI_CODIGO", "")
+
+                        if (cliCodigo.isEmpty()) {
+                            clientesProcessados++
+                            // Se esse for o último e estiver vazio, finaliza
+                            if (clientesProcessados == totalClientes && !ocorreuErro) onComplete()
+                            continue
+                        }
+
+                        // 2. Salva o cliente no banco local (Assumindo LOGIN_SEQ = 1)
+                        dados.sincronizarClienteApi(1, cliJson)
+
+                        // 3. Busca os Dependentes Deste Cliente Específico
+                        apiClient.buscarDependentes(accessToken, cliCodigo, object : ApiClient.ApiCallback {
+                            override fun onSuccess(depResp: org.json.JSONObject) {
+                                if (ocorreuErro) return // Se já deu erro em outro laço, aborta a gravação
+
+                                val depArray = depResp.optJSONArray("dados") ?: org.json.JSONArray()
+                                dados.sincronizarDependentesApi(cliCodigo, depArray)
+
+                                // 4. Busca as Parcelas Deste Cliente Específico
+                                apiClient.buscarParcelas(accessToken, cliCodigo, object : ApiClient.ApiCallback {
+                                    override fun onSuccess(parcResp: org.json.JSONObject) {
+                                        if (ocorreuErro) return
+
+                                        val parcArray = parcResp.optJSONArray("dados") ?: org.json.JSONArray()
+                                        dados.sincronizarParcelasApi(cliCodigo, parcArray)
+
+                                        // === VERIFICAÇÃO DE CONCLUSÃO ===
+                                        // Incrementa e verifica se todos os clientes já terminaram
+                                        clientesProcessados++
+                                        if (clientesProcessados == totalClientes && !ocorreuErro) {
+                                            onComplete() // Todos os contratos baixados com sucesso!
+                                        }
+                                    }
+
+                                    override fun onError(error: String) {
+                                        if (!ocorreuErro) {
+                                            ocorreuErro = true
+                                            onError("Falha ao sincronizar financeiro ($cliCodigo): $error")
+                                        }
+                                    }
+                                })
+                            }
+
+                            override fun onError(error: String) {
+                                if (!ocorreuErro) {
+                                    ocorreuErro = true
+                                    onError("Falha ao sincronizar dependentes ($cliCodigo): $error")
+                                }
+                            }
+                        })
+                    }
+
+                } catch (e: Exception) {
+                    onError("Erro ao processar dados do cliente: ${e.message}")
+                }
+            }
+
+            override fun onError(error: String) {
+                onError("Falha ao buscar dados do cliente: $error")
+            }
+        })
+    }
 }
 
 @Composable

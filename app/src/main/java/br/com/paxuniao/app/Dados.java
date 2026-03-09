@@ -429,6 +429,134 @@ public class Dados {
         }
     }
 
+    // ==========================================
+    // MÉTODOS DE SINCRONIZAÇÃO (API -> SQLite)
+    // ==========================================
 
+    public void apagacliantes() {
+        BancoDados.execSQL("DELETE FROM TB_CLI");
+    }
+    /**
+     * Sincroniza os dados principais do cliente
+     */
+    public void sincronizarClienteApi(int loginSeq, JSONObject cliJson) {
+        try {
+            BancoDados.beginTransaction();
+
+            // Limpa contratos  antigos
+           // BancoDados.execSQL("DELETE FROM TB_CLI");
+
+            // Usamos INSERT OR REPLACE para atualizar caso já exista
+            String sql = "INSERT OR REPLACE INTO TB_CLI " +
+                    "(CLI_LOGIN_SEQ, CLI_CODIGO, CLI_NOME, CLI_ENDERECO, CLI_ENDERECON, CLI_CIDADE, CLI_UF, CLI_CEP, CLI_TIPOPLANO, CLI_CLI_DATA_TRANS, CLI_SITUACAO) " +
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+            BancoDados.execSQL(sql, new Object[]{
+                    loginSeq,
+                    cliJson.optString("CLI_CODIGO", ""), // Ajuste para a chave retornada na sua API
+                    cliJson.optString("CLI_NOME", ""),
+                    cliJson.optString("CLI_ENDERECO", ""),
+                    cliJson.optString("CLI_ENDERECON", ""),
+                    cliJson.optString("CLI_CIDADE", ""),
+                    cliJson.optString("CLI_UF", ""),
+                    cliJson.optString("CLI_CEP", ""),
+                    cliJson.optInt("CLI_TIPOPLANO", 1),
+                    cliJson.optString("CLI_CLI_DATA_TRANS", ""),
+                    cliJson.optString("CLI_SITUACAO", "ATIVO")
+            });
+
+            BancoDados.setTransactionSuccessful();
+        } catch (Exception e) {
+            Log.e(TAG, "Erro ao sincronizar dados do cliente", e);
+        } finally {
+            BancoDados.endTransaction();
+            Log.i(TAG, "Sincronizado com sucesso");
+        }
+    }
+
+    /**
+     * Sincroniza os dependentes (Apaga os antigos locais e insere os novos da API)
+     */
+    public void sincronizarDependentesApi(String cliCodigo, JSONArray dependentesArray) {
+        try {
+            BancoDados.beginTransaction();
+
+            // Limpa os dependentes antigos do contrato para evitar duplicidade ou dependentes excluídos
+            BancoDados.execSQL("DELETE FROM TB_DEPENDENTES WHERE DEP_CLI_CODIGO = ?", new Object[]{cliCodigo});
+
+            String sql = "INSERT INTO TB_DEPENDENTES (DEP_CLI_CODIGO, DEP_NOME, DEP_GRAU_PARENTESCO) VALUES (?, ?, ?)";
+
+            for (int i = 0; i < dependentesArray.length(); i++) {
+                JSONObject dep = dependentesArray.getJSONObject(i);
+
+                BancoDados.execSQL(sql, new Object[]{
+                        cliCodigo,
+                        dep.optString("DEP_NOME", ""),
+                        dep.optString("DEP_GRAU_PARENTESCO", "")
+                });
+            }
+
+            BancoDados.setTransactionSuccessful();
+        } catch (Exception e) {
+            Log.e(TAG, "Erro ao sincronizar dependentes", e);
+        } finally {
+            BancoDados.endTransaction();
+        }
+    }
+
+    /**
+     * Sincroniza o financeiro/parcelas (Apaga as antigas locais e insere as novas da API)
+     */
+    public void sincronizarParcelasApi(String cliCodigo, JSONArray parcelasArray) {
+        try {
+            BancoDados.beginTransaction();
+
+            // Limpa parcelas antigas para este contrato
+            BancoDados.execSQL("DELETE FROM TB_CX WHERE CX_CLI_CODIGO = ?", new Object[]{cliCodigo});
+
+            String sql = "INSERT INTO TB_CX (CX_CLI_CODIGO, CX_NUMERO, CX_VENCIMENTO, CX_VALOR, CX_STATUS, CX_DT_PGTO, CX_MES, CX_ANO, CX_CODIGO_BARRAS) " +
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+            for (int i = 0; i < parcelasArray.length(); i++) {
+                JSONObject parc = parcelasArray.getJSONObject(i);
+
+                BancoDados.execSQL(sql, new Object[]{
+                        cliCodigo,
+                        parc.optInt("CX_NUMERO", 0),
+                        parc.optString("CX_VENCIMENTO", ""),
+                        parc.optDouble("CX_VALOR", 0.0),
+                        parc.optString("CX_STATUS", "aberto"), // pago, aberto, vencido
+                        parc.optString("CX_DT_PGTO", null),
+                        parc.optString("CX_MES", ""),
+                        parc.optInt("CX_ANO", 0),
+                        parc.optString("CX_CODIGO_BARRAS", "")
+                });
+            }
+
+            BancoDados.setTransactionSuccessful();
+        } catch (Exception e) {
+            Log.e(TAG, "Erro ao sincronizar parcelas", e);
+        } finally {
+            BancoDados.endTransaction();
+        }
+    }
+    /**
+     * Retorna a quantidade total de registros na tabela TB_CLI
+     * @return int - Número de clientes salvos localmente
+     */
+    public int getQuantidadeClientes() {
+        int count = 0;
+        try {
+            // Conta de forma otimizada direto no banco de dados
+            Cursor cursor = BancoDados.rawQuery("SELECT COUNT(*) FROM TB_CLI", null);
+            if (cursor.moveToFirst()) {
+                count = cursor.getInt(0); // Pega o resultado da primeira coluna (o count)
+            }
+            cursor.close();
+        } catch (Exception e) {
+            Log.e(TAG, "Erro ao contar registros em TB_CLI: " + e.getMessage());
+        }
+        return count;
+    }
 }
 

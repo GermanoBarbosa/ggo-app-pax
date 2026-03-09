@@ -199,7 +199,8 @@
     function salvarSenha() {
         const novaSenha = document.getElementById('newPass').value;
 
-        updateLoader("Salvando nova senha...", true, false);
+        // Ao invés de chamar updateLoader direto, chama o toggle
+        toggleLoading(true);
 
         if (typeof Android !== 'undefined' && Android.setpass) {
             // Chamada: Android.setpass(code, pass, cpf)
@@ -215,6 +216,17 @@
             }, 1500);
         }
     }
+
+    function toggleLoading(show) {
+        if (show) {
+            updateLoader("Salvando nova senha...", true, false);
+            document.getElementById('btnSave').disabled = true;
+        } else {
+            document.getElementById('id-loading').style.display = 'none';
+            // Revalida para garantir que o botão só fique ativo se as senhas estiverem ok
+            validarSenhas(); 
+        }
+    }    
 </script>
 
 </body>

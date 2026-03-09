@@ -218,4 +218,98 @@ public class ApiClient {
             });
         }
     }
+
+    // ===============================
+    // /app/login (ajuste o URL para o endpoint correto da sua API)
+    // ===============================
+    public void fazerLoginApi(String accessToken, String cpf, String senha, ApiCallback callback) {
+        try {
+            JSONObject json = new JSONObject();
+            json.put("access_token", accessToken);
+            json.put("cpf", cpf);
+            json.put("pass", senha); // Ou "password", dependendo de como está na sua API VB6
+
+            RequestBody body = RequestBody.create(json.toString(), JSON);
+
+            Request request = new Request.Builder()
+                    .url(BASE_URL + "/app/login") // AJUSTE: Confira se a rota no Logic2.cls é essa ou /app/login
+                    .post(body)
+                    .addHeader("Content-Type", "application/json")
+                    .build();
+
+            client.newCall(request).enqueue(new DefaultCallback(callback));
+
+        } catch (Exception e) {
+            callback.onError(e.getMessage());
+        }
+    }
+
+    // ===============================
+    // /app/cliente/dados (Busca TB_CLI)
+    // ===============================
+    public void buscarDadosCliente(String accessToken, String cpf, ApiCallback callback) {
+        try {
+            JSONObject json = new JSONObject();
+            json.put("access_token", accessToken);
+            json.put("cpf", cpf);
+
+            RequestBody body = RequestBody.create(json.toString(), JSON);
+
+            Request request = new Request.Builder()
+                    .url(BASE_URL + "/app/cliente/dados") // Ajuste para a rota correta da sua API VB6
+                    .post(body)
+                    .addHeader("Content-Type", "application/json")
+                    .build();
+
+            client.newCall(request).enqueue(new DefaultCallback(callback));
+        } catch (Exception e) {
+            callback.onError(e.getMessage());
+        }
+    }
+
+    // ===============================
+    // /app/cliente/dependentes (Busca TB_DEPENDENTES)
+    // ===============================
+    public void buscarDependentes(String accessToken, String cliCodigo, ApiCallback callback) {
+        try {
+            JSONObject json = new JSONObject();
+            json.put("access_token", accessToken);
+            json.put("cli_codigo", cliCodigo);
+
+            RequestBody body = RequestBody.create(json.toString(), JSON);
+
+            Request request = new Request.Builder()
+                    .url(BASE_URL + "/app/cliente/dependentes") // Ajuste para a rota correta
+                    .post(body)
+                    .addHeader("Content-Type", "application/json")
+                    .build();
+
+            client.newCall(request).enqueue(new DefaultCallback(callback));
+        } catch (Exception e) {
+            callback.onError(e.getMessage());
+        }
+    }
+
+    // ===============================
+    // /app/cliente/parcelas (Busca TB_CX)
+    // ===============================
+    public void buscarParcelas(String accessToken, String cliCodigo, ApiCallback callback) {
+        try {
+            JSONObject json = new JSONObject();
+            json.put("access_token", accessToken);
+            json.put("cli_codigo", cliCodigo);
+
+            RequestBody body = RequestBody.create(json.toString(), JSON);
+
+            Request request = new Request.Builder()
+                    .url(BASE_URL + "/app/cliente/parcelas") // Ajuste para a rota correta
+                    .post(body)
+                    .addHeader("Content-Type", "application/json")
+                    .build();
+
+            client.newCall(request).enqueue(new DefaultCallback(callback));
+        } catch (Exception e) {
+            callback.onError(e.getMessage());
+        }
+    }
 }
