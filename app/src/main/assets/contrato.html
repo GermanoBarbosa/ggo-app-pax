@@ -6,345 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Meu Contrato - PAX União</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <style>
-        /* MANTENHA SEU CSS ORIGINAL AQUI */
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', sans-serif;
-        }
-
-        body {
-            background-color: white;
-            display: flex;
-            justify-content: center;
-        }
-   /* Lista de Contratos */
-        .contract-list { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
-        
-        /* Card do Contrato */
-        .contract-card { 
-            display: flex; 
-            align-items: center; 
-            padding: 20px 15px; 
-            background: white; 
-            border: 1px solid #eee; 
-            border-radius: 15px; 
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-            cursor: pointer; 
-            transition: transform 0.2s, box-shadow 0.2s; 
-        }
-        .contract-card:active { transform: scale(0.98); background-color: #f8f9fa; }
-       .info-container { flex: 1; display: flex; flex-direction: column; }
-        .cli-nome { font-size: 16px; font-weight: bold; color: #333; margin-bottom: 3px; text-transform: uppercase; }
-        .cli-codigo { font-size: 13px; color: #666; display: flex; align-items: center; gap: 5px; }
-        .cli-status { display: inline-block; font-size: 10px; font-weight: bold; padding: 3px 8px; border-radius: 10px; margin-top: 5px; width: fit-content; }
-        
-        /* Status Cores */
-        .status-ativo { background-color: #e8f5e9; color: #2e7d32; }
-        .status-inativo { background-color: #ffebee; color: #c62828; }
-
-        .arrow-icon { color: #ccc; font-size: 18px; }
-
-        /* Estado Vazio */
-        .empty-state { text-align: center; padding: 40px 20px; color: #888; display: none; }
-        .empty-state i { font-size: 40px; margin-bottom: 10px; color: #ddd; }
-        .icon-container { 
-            width: 50px; height: 50px; 
-            background: #e8eaf6; 
-            border-radius: 12px; 
-            display: flex; align-items: center; justify-content: center; 
-            margin-right: 15px; 
-        }
-        .icon-container i { font-size: 24px; color: #1a237e; }        
-        
-        .app-container {
-            width: 100%;
-            max-width: 412px;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-        }
-
-        .header {
-            display: flex;
-            align-items: center;
-            padding: 20px;
-            background-color: white;
-            border-bottom: 1px solid #eee;
-        }
-
-        .header i {
-            font-size: 20px;
-            color: #333;
-            cursor: pointer;
-            padding: 5px;
-        }
-
-        .header h1 {
-            font-size: 20px;
-            font-weight: 500;
-            margin-left: 20px;
-        }
-
-        .tabs {
-            display: flex;
-            justify-content: space-around;
-            padding: 10px 0;
-            border-bottom: 1px solid #eee;
-            background: #fff;
-        }
-
-        .tab-item {
-            font-size: 14px;
-            color: #888;
-            padding: 10px 5px;
-            cursor: pointer;
-            position: relative;
-        }
-
-        .tab-item.active {
-            color: #1a237e;
-            font-weight: bold;
-        }
-
-        .tab-item.active::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 3px;
-            background-color: #1a237e;
-            border-radius: 2px;
-        }
-
-        .tab-content {
-            flex: 1;
-            padding: 20px;
-            overflow-y: auto;
-            background-color: #fdfaf5;
-            padding-bottom: 90px;
-        }
-
-        .content-section {
-            display: none;
-        }
-
-        .content-section.active {
-            display: block;
-        }
-
-        .info-card {
-            background: white;
-            border-radius: 15px;
-            padding: 15px;
-            margin-bottom: 15px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-        }
-
-        .info-item {
-            display: flex;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-
-        .info-item i {
-            width: 30px;
-            color: #1a237e;
-            font-size: 18px;
-        }
-
-        .info-text {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .label {
-            font-size: 12px;
-            color: #888;
-        }
-
-        .value {
-            font-size: 15px;
-            color: #333;
-            font-weight: 500;
-        }
-
-        .btn-action {
-            width: 100%;
-            padding: 12px;
-            background: #1a237e;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            width: 100%;
-            max-width: 412px;
-            display: flex;
-            justify-content: space-around;
-            padding: 10px 0;
-            border-top: 1px solid #eee;
-            background: white;
-            z-index: 1000;
-        }
-
-        .nav-item {
-            text-align: center;
-            color: #888;
-            font-size: 11px;
-            flex: 1;
-            cursor: pointer;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .nav-item.active {
-            color: #1a237e;
-            font-weight: 600;
-        }
-
-        .nav-icon-container {
-            padding: 8px 20px;
-            border-radius: 12px;
-            margin-bottom: 2px;
-            transition: 0.2s;
-        }
-
-        .nav-item.active .nav-icon-container {
-            background-color: #1a237e;
-            color: white;
-        }
-
-        .nav-item i {
-            font-size: 18px;
-        }
-
-        .dep-item {
-            padding: 10px 0;
-            border-bottom: 1px solid #eee;
-        }
-
-        .dep-item:last-child {
-            border-bottom: none;
-        }
-
-        /* Filtros */
-        .filters {
-            display: flex;
-            gap: 10px;
-            padding: 15px;
-            overflow-x: auto;
-            scrollbar-width: none;
-        }
-
-        .filters::-webkit-scrollbar {
-            display: none;
-        }
-
-        .badge {
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 13px;
-            font-weight: 500;
-            color: #666;
-            background-color: #f0f0f0;
-            border: 1px solid #eee;
-            cursor: pointer;
-            white-space: nowrap;
-            transition: 0.2s;
-        }
-
-        /* Estados dos Filtros */
-        .badge.active-blue {
-            background-color: #1e88e5;
-            color: white;
-            border-color: #1e88e5;
-        }
-
-        .badge.active-red {
-            background-color: #ef5350;
-            color: white;
-            border-color: #ef5350;
-        }
-
-        .badge.active-green {
-            background-color: #43a047;
-            color: white;
-            border-color: #43a047;
-        }
-
-        .badge.active-dark {
-            background-color: #333;
-            color: white;
-            border-color: #333;
-        }
-
-        /* Feedback visual quando a lista está vazia */
-        .empty-state {
-            text-align: center;
-            padding: 40px 20px;
-            color: #888;
-            display: none;
-        }
-
-        .empty-state i {
-            font-size: 40px;
-            margin-bottom: 10px;
-            color: #ddd;
-        }
-
-        /* Lista */
-        .parcela-list {
-            flex: 1;
-            padding: 0 15px 100px 15px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .parcela-card {
-            background-color: #f1f3f8;
-            border-radius: 12px;
-            padding: 15px;
-            position: relative;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-
-        .parcela-card:active {
-            transform: scale(0.98);
-        }
-
-        .card-main {
-            display: flex;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-
-        .status-icon {
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 18px;
-            margin-right: 15px;
-        }
-    </style>
-
-    <style>
+        /* CSS Unificado e Limpo */
         * {
             box-sizing: border-box;
             margin: 0;
@@ -372,24 +36,29 @@
             display: flex;
             align-items: center;
             padding: 20px;
+            background-color: white;
+            border-bottom: 1px solid #eee;
         }
 
         .header i {
             font-size: 20px;
+            color: #333;
             cursor: pointer;
+            padding: 5px;
         }
 
         .header h1 {
             font-size: 20px;
             font-weight: 500;
-            margin-left: 25px;
+            margin-left: 20px;
         }
 
-        /* Tabs Azul */
+        /* Tabs */
         .tabs {
             display: flex;
             border-bottom: 1px solid #eee;
             padding: 0 10px;
+            background: #fff;
         }
 
         .tab-item {
@@ -418,11 +87,194 @@
             border-radius: 3px 3px 0 0;
         }
 
-        /* Filtros */
+        .tab-content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background-color: #fdfaf5;
+            padding-bottom: 90px;
+        }
+
+        .content-section {
+            display: none;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        /* Info Cards */
+        .info-card {
+            background: white;
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .info-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .info-item i {
+            width: 30px;
+            color: #1a237e;
+            font-size: 18px;
+        }
+
+        .info-text {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .label {
+            font-size: 12px;
+            color: #888;
+        }
+
+        .value {
+            font-size: 15px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        /* Contratos (Aba Outros) */
+        .contract-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .contract-card {
+            display: flex;
+            align-items: center;
+            padding: 20px 15px;
+            background: white;
+            border: 1px solid #eee;
+            border-radius: 15px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .contract-card:active {
+            transform: scale(0.98);
+            background-color: #f8f9fa;
+        }
+        
+        /* Destaque para contrato selecionado */
+        .contract-card.selected-card {
+            border: 1px solid #1a237e;
+            background-color: #f8f9ff;
+        }
+
+        .icon-container {
+            width: 50px;
+            height: 50px;
+            background: #e8eaf6;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+        }
+
+        .icon-container i {
+            font-size: 24px;
+            color: #1a237e;
+        }
+
+        .info-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .cli-nome {
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 3px;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+
+        .cli-codigo {
+            font-size: 13px;
+            color: #666;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .cli-status {
+            display: inline-block;
+            font-size: 10px;
+            font-weight: bold;
+            padding: 3px 8px;
+            border-radius: 10px;
+            margin-top: 5px;
+            width: fit-content;
+        }
+
+        .status-ativo { background-color: #e8f5e9; color: #2e7d32; }
+        .status-inativo { background-color: #ffebee; color: #c62828; }
+
+        .arrow-icon {
+            color: #ccc;
+            font-size: 18px;
+        }
+
+        /* Dependentes Card */
+        .dependent-card {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            background: white;
+            border: 1px solid #eee;
+            border-radius: 12px;
+            margin-bottom: 12px;
+        }
+
+        .dependent-card:last-child {
+            margin-bottom: 0;
+        }
+
+        .dependent-card .icon-container {
+            width: 40px;
+            height: 40px;
+            background: #f0f4ff;
+            border-radius: 50%;
+        }
+
+        .dependent-card .icon-container i {
+            font-size: 18px;
+        }
+
+        .dep-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .dep-nome { font-size: 14px; font-weight: bold; color: #333; }
+        .dep-grau { font-size: 12px; color: #666; }
+        .dep-idade { font-size: 11px; color: #999; }
+
+        /* Filtros Financeiro */
         .filters {
             display: flex;
             gap: 10px;
-            padding: 15px;
+            padding: 0 0 15px 0;
             overflow-x: auto;
             scrollbar-width: none;
         }
@@ -444,35 +296,13 @@
             transition: 0.2s;
         }
 
-        /* Estados dos Filtros */
-        .badge.active-blue {
-            background-color: #1e88e5;
-            color: white;
-            border-color: #1e88e5;
-        }
+        .badge.active-blue { background-color: #1e88e5; color: white; border-color: #1e88e5; }
+        .badge.active-red { background-color: #ef5350; color: white; border-color: #ef5350; }
+        .badge.active-green { background-color: #43a047; color: white; border-color: #43a047; }
+        .badge.active-dark { background-color: #333; color: white; border-color: #333; }
 
-        .badge.active-red {
-            background-color: #ef5350;
-            color: white;
-            border-color: #ef5350;
-        }
-
-        .badge.active-green {
-            background-color: #43a047;
-            color: white;
-            border-color: #43a047;
-        }
-
-        .badge.active-dark {
-            background-color: #333;
-            color: white;
-            border-color: #333;
-        }
-
-        /* Lista */
+        /* Lista de Parcelas */
         .parcela-list {
-            flex: 1;
-            padding: 0 15px 100px 15px;
             display: flex;
             flex-direction: column;
             gap: 12px;
@@ -487,9 +317,7 @@
             transition: 0.2s;
         }
 
-        .parcela-card:active {
-            transform: scale(0.98);
-        }
+        .parcela-card:active { transform: scale(0.98); }
 
         .card-main {
             display: flex;
@@ -509,69 +337,21 @@
             margin-right: 15px;
         }
 
-        /* Cores de Status */
-        .bg-blue {
-            background-color: #1e88e5;
-        }
+        .bg-blue { background-color: #1e88e5; }
+        .bg-red { background-color: #ef5350; }
+        .bg-green { background-color: #43a047; }
+        .text-blue { color: #1e88e5; }
+        .text-red { color: #ef5350; }
+        .text-green { color: #43a047; }
 
-        .bg-red {
-            background-color: #ef5350;
-        }
+        .card-details { flex: 1; }
+        .parcela-title { font-size: 16px; font-weight: bold; color: #333; display: block; }
+        .parcela-vcto { font-size: 13px; color: #666; margin-top: 2px; }
 
-        .bg-green {
-            background-color: #43a047;
-        }
-
-        .text-blue {
-            color: #1e88e5;
-        }
-
-        .text-red {
-            color: #ef5350;
-        }
-
-        .text-green {
-            color: #43a047;
-        }
-
-        .card-details {
-            flex: 1;
-        }
-
-        .parcela-title {
-            font-size: 16px;
-            font-weight: bold;
-            color: #333;
-        }
-
-        .parcela-vcto {
-            font-size: 13px;
-            color: #666;
-            margin-top: 2px;
-        }
-
-        .card-values {
-            text-align: right;
-            padding-right: 25px;
-        }
-
-        .val-label {
-            font-size: 11px;
-            color: #888;
-            display: block;
-        }
-
-        .val-text {
-            font-size: 12px;
-            font-weight: 500;
-            margin-bottom: 4px;
-            display: block;
-        }
-
-        .val-total {
-            font-size: 14px;
-            font-weight: bold;
-        }
+        .card-values { text-align: right; padding-right: 25px; }
+        .val-label { font-size: 11px; color: #888; display: block; }
+        .val-text { font-size: 12px; font-weight: 500; margin-bottom: 4px; display: block; }
+        .val-total { font-size: 14px; font-weight: bold; }
 
         .arrow-right {
             position: absolute;
@@ -592,7 +372,7 @@
             text-transform: uppercase;
         }
 
-        /* Feedback visual quando a lista está vazia */
+        /* Empty State */
         .empty-state {
             text-align: center;
             padding: 40px 20px;
@@ -606,7 +386,7 @@
             color: #ddd;
         }
 
-        /* Bottom Nav Padronizado */
+        /* Bottom Nav */
         .bottom-nav {
             position: fixed;
             bottom: 0;
@@ -648,9 +428,8 @@
             color: white;
         }
 
-        .nav-item i {
-            font-size: 18px;
-        }
+        .nav-item i { font-size: 18px; }
+
     </style>
 </head>
 
@@ -659,11 +438,10 @@
         <div class="header">
             <i class="fa-solid fa-arrow-left" onclick="window.history.back()"></i>
             <h1>Meu Contrato</h1>
-           
         </div>
 
         <div class="tabs">
-            <div class="tab-item active" onclick="switchTab(event, 'dados')">Contrato</div>
+            <div class="tab-item active" id="tab_dados" onclick="switchTab(event, 'dados')">Contrato</div>
             <div class="tab-item" onclick="switchTab(event, 'dependentes')">Dependentes</div>
             <div class="tab-item" id="tab_fin" onclick="switchTab(event, 'financeiro')">Financeiro</div>
             <div class="tab-item" onclick="switchTab(event, 'outros')">Outros</div>
@@ -683,7 +461,7 @@
                         <i class="fa-solid fa-calendar-check"></i>
                         <div class="info-text">
                             <span class="label">Data de Adesão</span>
-                            <span class="value" id="val-adesao">...</span>
+                            <span class="value" id="val-adesao">15/04/2021</span>
                         </div>
                     </div>
                 </div>
@@ -707,9 +485,8 @@
             </div>
 
             <div id="dependentes" class="content-section">
-                <div class="info-card" id="container-dependentes">
-                    <p style="color: #888; font-size: 14px; text-align: center;">Carregando dependentes...</p>
-                </div>
+                <div id="container-dependentes">
+                    </div>
             </div>
 
             <div id="financeiro" class="content-section">
@@ -721,9 +498,7 @@
                             <span class="value" id="resumo-situacao">Carregando...</span>
                         </div>
                     </div>
-
-                    <div
-                        style="display: flex; justify-content: space-between; margin: 15px 0; padding-top: 10px; border-top: 1px dashed #ddd;">
+                    <div style="display: flex; justify-content: space-between; margin-top: 15px; padding-top: 10px; border-top: 1px dashed #ddd;">
                         <div class="info-text">
                             <span class="label">Total Pago</span>
                             <span class="value" id="resumo-pago" style="color: green;">R$ 0,00</span>
@@ -733,8 +508,6 @@
                             <span class="value" id="resumo-aberto" style="color: #1a237e;">R$ 0,00</span>
                         </div>
                     </div>
-
-
                 </div>
 
                 <div class="filters">
@@ -744,45 +517,39 @@
                     <div class="badge" onclick="filtrar('pago', this)">Pagos</div>
                 </div>
 
-                <div class="parcela-list" id="listaParcelas">
-                </div>
+                <div class="parcela-list" id="listaParcelas"></div>
 
-                <div id="emptyState" class="empty-state">
+                <div id="emptyStateParcelas" class="empty-state">
                     <i class="fa-regular fa-folder-open"></i>
-                    <p>Nenhuma parcela encontrada com este filtro.</p>
+                    <p>Nenhuma parcela encontrada para este contrato.</p>
                 </div>
-
             </div>
 
             <div id="outros" class="content-section">
                 <div class="info-card" id="container-outros">
-                    
-    <div class="contract-list" id="listaContratos">
-        </div>
-
-    <div id="emptyState" class="empty-state">
-        <i class="fa-regular fa-folder-open"></i>
-        <p>Nenhum contrato encontrado para este usuário.</p>
-    </div>                    
-                    
+                    <div class="contract-list" id="listaContratos"></div>
+                    <div id="emptyStateContratos" class="empty-state">
+                        <i class="fa-regular fa-folder-open"></i>
+                        <p>Nenhum contrato encontrado para este usuário.</p>
+                    </div>
                 </div>
             </div>
         </div>
 
         <nav class="bottom-nav">
-            <div class="nav-item active" onclick="Android.Contrato()">
+            <div class="nav-item active" onclick="chamarAndroid('Contrato')">
                 <div class="nav-icon-container"><i class="fa-solid fa-file-contract"></i></div>
                 <span>Contrato</span>
             </div>
-            <div class="nav-item" onclick="Android.Login()">
+            <div class="nav-item" onclick="chamarAndroid('Login')">
                 <div class="nav-icon-container"><i class="fa-solid fa-address-card"></i></div>
                 <span>Carteirinha</span>
             </div>
-            <div class="nav-item" onclick="Android.Conveniados()">
+            <div class="nav-item" onclick="chamarAndroid('Conveniados')">
                 <div class="nav-icon-container"><i class="fa-solid fa-hospital-user"></i></div>
                 <span>Conveniados</span>
             </div>
-            <div class="nav-item" onclick="Android.Informacoes()">
+            <div class="nav-item" onclick="chamarAndroid('Informacoes')">
                 <div class="nav-icon-container"><i class="fa-solid fa-circle-info"></i></div>
                 <span>Informações</span>
             </div>
@@ -790,336 +557,322 @@
     </div>
 
     <script>
+        // ==========================================
+        // MOCKS DE DADOS (TESTE NO NAVEGADOR)
+        // ==========================================
+        const mockDependentes = {
+            "0055-A1": [
+                { nome: "João Silva Araujo", grau: "Esposo(a)", idade: "45 anos", status: "ATIVO" },
+                { nome: "Maria Silva Araujo", grau: "Filho(a)", idade: "15 anos", status: "ATIVO" }
+            ],
+            "0088-B2": [
+                { nome: "Carlos Mendes", grau: "Irmão(a)", idade: "30 anos", status: "INATIVO" },
+                { nome: "Ana Paula Mendes", grau: "Mãe", idade: "62 anos", status: "ATIVO" }
+            ]
+        };
 
-        // Adicione isso após o início da tag script, antes do window.onload
+        const mockFinanceiro = {
+            "0055-A1": [
+                { id: 26, vencimento: '28/05/2026', valor: '60,00', status: 'aberto', mes: 'MAIO', ano: 2026 },
+                { id: 25, vencimento: '28/04/2026', valor: '60,00', status: 'aberto', mes: 'ABRIL', ano: 2026 },
+                { id: 24, vencimento: '28/03/2026', valor: '60,00', status: 'vencido', mes: 'MARÇO', ano: 2026 },
+                { id: 23, vencimento: '28/02/2026', valor: '60,00', status: 'pago', pgto: '20/02/2026', mes: 'FEVEREIRO', ano: 2026 }
+            ],
+            "0088-B2": [
+                { id: 12, vencimento: '10/05/2026', valor: '45,00', status: 'aberto', mes: 'MAIO', ano: 2026 },
+                { id: 11, vencimento: '10/04/2026', valor: '45,00', status: 'pago', pgto: '05/04/2026', mes: 'ABRIL', ano: 2026 }
+            ]
+        };
+
+        let parcelasAtuais = []; // Guarda as parcelas do contrato ativo
+
+        // ==========================================
+        // LÓGICA DE INICIALIZAÇÃO
+        // ==========================================
         document.addEventListener('DOMContentLoaded', function () {
-            // Pega o parâmetro da URL
             const urlParams = new URLSearchParams(window.location.search);
             const tabAtiva = urlParams.get('tab');
 
             if (tabAtiva === 'financeiro') {
-                // Ativa a aba financeiro
-                setTimeout(() => {
-                    ///switchTab(event, 'financeiro');
-
-                    document.getElementById("tab_fin").click();
-                }, 100); // Pequeno delay para garantir que a página carregou
+                setTimeout(() => document.getElementById("tab_fin").click(), 100);
             }
-        });
-        // 1. Função executada ao carregar a página
-        window.onload = function () {
+            
             carregarDadosDoAndroid();
-        };
+        });
 
+        // Navegação pelo Bottom Nav (Mock)
+        function chamarAndroid(metodo) {
+            if (typeof Android !== 'undefined' && Android[metodo]) {
+                Android[metodo]();
+            } else {
+                console.log("Mock Android: Navegando para " + metodo);
+            }
+        }
+
+        // ==========================================
+        // GESTÃO DE DADOS DO CONTRATO
+        // ==========================================
         function carregarDadosDoAndroid() {
             try {
-                // No Android, você salvou o contrato ativo no SharedPreferences/TBSYS
-                // Mas para ser direto, podemos usar o método que já existe no seu Dados.java
+                let jsonContratos = []; 
 
-                // Simulação de busca do código ativo (idealmente você teria um Android.getContratoAtivo())
-                // Para este exemplo, vou assumir que você quer carregar o que está no banco.
+                if (typeof Android === 'undefined') {
+                    // Mock: Simulando o 0088-B2 como selecionado (-1)
+                    jsonContratos = [
+                        { "CLI_CODIGO": "0055-A1", "CLI_NOME": "Ivoneide S. Nava Araujo", "CLI_SITUACAO": "ATIVO", "CLI_SELECIONADO": 0 },
+                        { "CLI_CODIGO": "0088-B2", "CLI_NOME": "Ivoneide S. Nava Araujo", "CLI_SITUACAO": "INATIVO", "CLI_SELECIONADO": -1 }
+                    ];
+                } else if (Android.getListaContratos) {
+                    const dadosString = Android.getListaContratos();
+                    if(dadosString) jsonContratos = JSON.parse(dadosString);
+                }
 
-                // No seu WebAppInterface, você não criou um "getDadosContrato", 
-                // então vamos usar o getListaContratos e filtrar ou criar um novo no Kotlin.
-
-                // DICA: Como você já tem o código no TBSYS do Android, 
-                // você pode chamar uma função que retorne o JSON do cliente específico.
-
-                // Vamos usar o que está disponível no seu WebAppInterface:
-                const jsonContratos = JSON.parse(Android.getListaContratos());
+                renderizarListaContratos(jsonContratos);
 
                 if (jsonContratos && jsonContratos.length > 0) {
-                    const cli = jsonContratos[0]; // Pega o primeiro para exemplo
-
-                    document.getElementById('val-contrato').innerText = cli.CLI_CODIGO;
-                    document.getElementById('val-nome').innerText = cli.CLI_NOME;
-                    // document.getElementById('val-situacao').innerText = cli.CLI_SITUACAO;
-                    // document.getElementById('val-situacao').style.color = cli.CLI_SITUACAO === 'ATIVO' ? 'green' : 'red';
-
-                    // Agora buscamos os dependentes usando o código do cliente
-                    carregarDependentes(cli.CLI_CODIGO);
-                    // e também outros dados que precisarmos
-                    carregarOutros(cli.CLI_CODIGO);
+                    // Busca o contrato onde CLI_SELECIONADO é -1. Se não achar, pega o primeiro.
+                    let contratoSelecionado = jsonContratos.find(c => c.CLI_SELECIONADO == -1);
+                    if (!contratoSelecionado) contratoSelecionado = jsonContratos[0];
+                    
+                    aplicarContratoAtivo(contratoSelecionado.CLI_CODIGO, contratoSelecionado.CLI_NOME);
                 }
             } catch (e) {
                 console.error("Erro ao carregar dados do Android", e);
             }
         }
 
-        function carregarDependentes(codigo) {
-            try {
-                // Como seu WebAppInterface não tem getDependentes direto, 
-                // você pode adicionar no Kotlin ou usar o obterJsonGenerico via JS se o banco permitir.
-                // Mas aqui vamos simular a chamada se você adicionar @JavascriptInterface getDependentes(cod)
-
-                // Exemplo baseado no seu Dados.java:
-                // No Kotlin, você precisaria expor: 
-                // @JavascriptInterface fun getDeps(cod: String) = dados.getJsonDependentes(cod)
-
-                // Por enquanto, vamos preencher com um placeholder ou usar um retorno genérico
-                const container = document.getElementById('container-dependentes');
-                container.innerHTML = '<p style="color: #888; font-size: 14px; text-align: center;">Consulta realizada para: ' + codigo + '</p>';
-            } catch (e) { }
-        }
-
-        // placeholder para a nova aba "Outros". será chamado no carregamento ou quando a aba for ativada
-        function carregarOutros(codigo) {
-            try {
-                const container = document.getElementById('container-outros');
-                container.innerHTML = '<p style="color: #888; font-size: 14px; text-align: center;">Dados adicionais para: ' + codigo + '</p>';
-            } catch (e) { }
-        }
-
-        function switchTab(event, tabId) {
-            document.querySelectorAll('.tab-item').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll('.content-section').forEach(section => section.classList.remove('active'));
-            event.currentTarget.classList.add('active');
-            document.getElementById(tabId).classList.add('active');
-
-            // opção de carregamento dinâmico quando o usuário clicar em Outros
-            if (tabId === 'outros') {
-                // supondo que o contrato já esteja carregado, pega código exibido
-                const codigo = document.getElementById('val-contrato').innerText;
-                if (codigo && codigo !== '...') {
-                    carregarOutros(codigo);
-                }
-            }
-        }
-
-        function carregarFinanceiro(codigoContrato) {
-            try {
-                // Chama o método que já existe no seu WebAppInterface/Dados.java
-                const jsonParcelas = JSON.parse(Android.getParcelas(codigoContrato));
-
-                let totalPago = 0;
-                let totalAberto = 0;
-                let temVencido = false;
-
-                jsonParcelas.forEach(p => {
-                    const valor = parseFloat(p.CX_VALOR) || 0;
-                    if (p.CX_STATUS.toLowerCase() === 'pago') {
-                        totalPago += valor;
-                    } else {
-                        totalAberto += valor;
-                        if (p.CX_STATUS.toLowerCase() === 'vencido') {
-                            temVencido = true;
-                        }
-                    }
-                });
-
-                // Atualiza a tela
-                document.getElementById('resumo-pago').innerText = totalPago.toLocaleString('pt-br', { style: 'currency', currency: 'BRL' });
-                document.getElementById('resumo-aberto').innerText = totalAberto.toLocaleString('pt-br', { style: 'currency', currency: 'BRL' });
-
-                const situacaoTxt = document.getElementById('resumo-situacao');
-                if (temVencido) {
-                    situacaoTxt.innerText = "Pendente";
-                    situacaoTxt.style.color = "red";
-                } else {
-                    situacaoTxt.innerText = "Regular";
-                    situacaoTxt.style.color = "green";
-                }
-            } catch (e) {
-                console.error("Erro ao processar financeiro", e);
-            }
-        }
-
-
-    </script>
-
-    <script>
-        // Base de dados das Parcelas (25 itens variados)
-        const dadosParcelas = [
-            { id: 26, vencimento: '28/05/2026', valor: '60,00', status: 'aberto', mes: 'MAIO', ano: 2026 },
-            { id: 25, vencimento: '28/04/2026', valor: '60,00', status: 'aberto', mes: 'ABRIL', ano: 2026 },
-            { id: 24, vencimento: '28/03/2026', valor: '60,00', status: 'aberto', mes: 'MARÇO', ano: 2026 },
-            { id: 23, vencimento: '28/02/2026', valor: '60,00', status: 'vencido', mes: 'FEVEREIRO', ano: 2026 },
-            { id: 22, vencimento: '28/01/2026', valor: '60,00', status: 'vencido', mes: 'JANEIRO', ano: 2026 },
-            // Parcelas Pagas (2025)
-            { id: 21, vencimento: '28/12/2025', valor: '60,00', status: 'pago', pgto: '20/12/2025', mes: 'DEZEMBRO', ano: 2025 },
-            { id: 20, vencimento: '28/11/2025', valor: '60,00', status: 'pago', pgto: '22/11/2025', mes: 'NOVEMBRO', ano: 2025 },
-            { id: 19, vencimento: '28/10/2025', valor: '60,00', status: 'pago', pgto: '25/10/2025', mes: 'OUTUBRO', ano: 2025 },
-            { id: 18, vencimento: '28/09/2025', valor: '60,00', status: 'pago', pgto: '28/09/2025', mes: 'SETEMBRO', ano: 2025 },
-            { id: 17, vencimento: '28/08/2025', valor: '60,00', status: 'pago', pgto: '20/08/2025', mes: 'AGOSTO', ano: 2025 },
-            { id: 16, vencimento: '28/07/2025', valor: '60,00', status: 'pago', pgto: '21/07/2025', mes: 'JULHO', ano: 2025 },
-            { id: 15, vencimento: '28/06/2025', valor: '60,00', status: 'pago', pgto: '25/06/2025', mes: 'JUNHO', ano: 2025 },
-            { id: 14, vencimento: '28/05/2025', valor: '55,00', status: 'pago', pgto: '20/05/2025', mes: 'MAIO', ano: 2025 },
-            { id: 13, vencimento: '28/04/2025', valor: '55,00', status: 'pago', pgto: '22/04/2025', mes: 'ABRIL', ano: 2025 },
-            { id: 12, vencimento: '28/03/2025', valor: '55,00', status: 'pago', pgto: '28/03/2025', mes: 'MARÇO', ano: 2025 },
-            // Parcelas Pagas (2024)
-            { id: 11, vencimento: '28/02/2025', valor: '55,00', status: 'pago', pgto: '20/02/2025', mes: 'FEVEREIRO', ano: 2025 },
-            { id: 10, vencimento: '28/01/2025', valor: '55,00', status: 'pago', pgto: '20/01/2025', mes: 'JANEIRO', ano: 2025 },
-            { id: 9, vencimento: '28/12/2024', valor: '55,00', status: 'pago', pgto: '15/12/2024', mes: 'DEZEMBRO', ano: 2024 },
-            { id: 8, vencimento: '28/11/2024', valor: '55,00', status: 'pago', pgto: '20/11/2024', mes: 'NOVEMBRO', ano: 2024 },
-            { id: 7, vencimento: '28/10/2024', valor: '55,00', status: 'pago', pgto: '22/10/2024', mes: 'OUTUBRO', ano: 2024 },
-            { id: 6, vencimento: '28/09/2024', valor: '55,00', status: 'pago', pgto: '25/09/2024', mes: 'SETEMBRO', ano: 2024 },
-            { id: 5, vencimento: '28/08/2024', valor: '50,00', status: 'pago', pgto: '20/08/2024', mes: 'AGOSTO', ano: 2024 },
-            { id: 4, vencimento: '28/07/2024', valor: '50,00', status: 'pago', pgto: '21/07/2024', mes: 'JULHO', ano: 2024 },
-            { id: 3, vencimento: '28/06/2024', valor: '50,00', status: 'pago', pgto: '20/06/2024', mes: 'JUNHO', ano: 2024 },
-            { id: 2, vencimento: '28/05/2024', valor: '50,00', status: 'pago', pgto: '20/05/2024', mes: 'MAIO', ano: 2024 },
-            { id: 1, vencimento: '28/04/2024', valor: '50,00', status: 'pago', pgto: '20/04/2024', mes: 'ABRIL', ano: 2024 },
-        ];
-
-        const container = document.getElementById('listaParcelas');
-        const emptyState = document.getElementById('emptyState');
-
-        // Função Principal de Renderização
-        function renderizarLista(filtro) {
+        function renderizarListaContratos(jsonContratos) {
+            const container = document.getElementById('listaContratos');
+            const emptyState = document.getElementById('emptyStateContratos');
             container.innerHTML = '';
+            
+            if (jsonContratos.length === 0) {
+                emptyState.style.display = 'block';
+                return;
+            } else {
+                emptyState.style.display = 'none';
+            }
+
+            jsonContratos.forEach(contrato => {
+                const statusClass = (contrato.CLI_SITUACAO.toUpperCase() === 'ATIVO') ? 'status-ativo' : 'status-inativo';
+                const isSelecionado = (contrato.CLI_SELECIONADO == -1);
+                
+                // Aplica um CSS diferente e uma tag visual se for o contrato atual
+                const cardClass = isSelecionado ? 'contract-card selected-card' : 'contract-card';
+                const badgeAtual = isSelecionado ? '<span style="font-size: 10px; background: #1a237e; color: white; padding: 2px 6px; border-radius: 8px;">Atual</span>' : '';
+
+                const cardHTML = `
+                <div class="${cardClass}" onclick="selecionarContrato('${contrato.CLI_CODIGO}','${contrato.CLI_NOME}')">
+                    <div class="icon-container"><i class="fa-solid fa-file-signature"></i></div>
+                    <div class="info-container">
+                        <span class="cli-nome">${contrato.CLI_NOME} ${badgeAtual}</span>
+                        <span class="cli-codigo"><i class="fa-solid fa-hashtag"></i> ${contrato.CLI_CODIGO}</span>
+                        <span class="cli-status ${statusClass}">${contrato.CLI_SITUACAO}</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right arrow-icon"></i>
+                </div>`;
+                container.innerHTML += cardHTML;
+            });
+        }
+
+        function aplicarContratoAtivo(codigo, nome) {
+            document.getElementById('val-contrato').innerText = codigo;
+            document.getElementById('val-nome').innerText = nome;
+            
+            // Recarrega as informações das outras abas baseadas no novo contrato
+            carregarDependentes(codigo);
+            carregarFinanceiro(codigo);
+        }
+
+        function selecionarContrato(codigo, cli_nome) {
+            aplicarContratoAtivo(codigo, cli_nome);
+            
+            // Muda para a aba "Contrato"
+            switchTab(null, 'dados');
+
+            // Recarrega a lista de contratos novamente simulando o novo CLI_SELECIONADO = -1 (Apenas para o Mock funcionar 100% visualmente)
+            if (typeof Android === 'undefined') {
+                const navMock = [
+                    { "CLI_CODIGO": "0055-A1", "CLI_NOME": "Ivoneide S. Nava Araujo", "CLI_SITUACAO": "ATIVO", "CLI_SELECIONADO": codigo === "0055-A1" ? -1 : 0 },
+                    { "CLI_CODIGO": "0088-B2", "CLI_NOME": "Ivoneide S. Nava Araujo", "CLI_SITUACAO": "INATIVO", "CLI_SELECIONADO": codigo === "0088-B2" ? -1 : 0 }
+                ];
+                renderizarListaContratos(navMock);
+            }
+
+            // Notifica o Android
+            if (typeof Android !== 'undefined' && Android.SelecionarContrato) {
+                Android.SelecionarContrato(codigo, cli_nome); // Isso deve atualizar o banco/API nativamente
+            } else {
+                console.log("Teste Navegador - Contrato alterado para: " + codigo);
+            }
+        }
+
+        // ==========================================
+        // ABAS DEPENDENTES E FINANCEIRO
+        // ==========================================
+        function carregarDependentes(codigo) {
+            const container = document.getElementById('container-dependentes');
+            container.innerHTML = ''; 
+
+            let listaDeps = [];
+            if (typeof Android === 'undefined') {
+                listaDeps = mockDependentes[codigo] || [];
+            } else if (Android.getDependentes) {
+                const dadosStr = Android.getDependentes(codigo);
+                if (dadosStr) listaDeps = JSON.parse(dadosStr);
+            }
+
+            if (listaDeps.length === 0) {
+                container.innerHTML = '<p style="color: #888; font-size: 14px; text-align: center; padding: 20px;">Nenhum dependente encontrado para este contrato.</p>';
+                return;
+            }
+
+            listaDeps.forEach(dep => {
+                const isAtivo = dep.status.toUpperCase() === 'ATIVO';
+                const statusColor = isAtivo ? '#2e7d32' : '#c62828';
+                const statusBg = isAtivo ? '#e8f5e9' : '#ffebee';
+
+                const html = `
+                <div class="dependent-card">
+                    <div class="icon-container"><i class="fa-solid fa-user-group"></i></div>
+                    <div class="dep-info">
+                        <span class="dep-nome">${dep.nome}</span>
+                        <span class="dep-grau">Grau: ${dep.grau}</span>
+                        <span class="dep-idade">Idade: ${dep.idade}</span>
+                    </div>
+                    <div style="font-size: 10px; font-weight: bold; padding: 4px 8px; border-radius: 10px; background-color: ${statusBg}; color: ${statusColor};">${dep.status}</div>
+                </div>`;
+                container.innerHTML += html;
+            });
+        }
+
+        function carregarFinanceiro(codigo) {
+            if (typeof Android === 'undefined') {
+                parcelasAtuais = mockFinanceiro[codigo] || [];
+            } else if (Android.getParcelas) {
+                const dadosStr = Android.getParcelas(codigo);
+                if (dadosStr) parcelasAtuais = JSON.parse(dadosStr);
+            }
+
+            // Resetando UI de Filtros para "Todos"
+            document.querySelectorAll('.badge').forEach(b => b.className = 'badge');
+            document.querySelector('.badge[onclick*="todos"]').classList.add('active-dark');
+
+            renderizarLista('todos');
+        }
+
+        function renderizarLista(filtro) {
+            const container = document.getElementById('listaParcelas');
+            const emptyState = document.getElementById('emptyStateParcelas');
+            container.innerHTML = '';
+            
             let contador = 0;
+            let totalPago = 0;
+            let totalAberto = 0;
+            let temVencido = false;
 
-            dadosParcelas.forEach(p => {
-                // Lógica de Filtro
-                if (filtro !== 'todos' && p.status !== filtro) return;
+            parcelasAtuais.forEach(p => {
+                // 1. Adaptação para ler tanto do Mock quanto do Android real
+                const valID = p.id || p.CX_PARCELA || p.CX_ID || '';
+                const valVencimento = p.vencimento || p.CX_VENCIMENTO || '';
+                const valStatus = (p.status || p.CX_STATUS || '').toLowerCase();
+                const valPgto = p.pgto || p.CX_PAGAMENTO || '';
+                const valMes = p.mes || p.CX_MES || '';
+                const valAno = p.ano || p.CX_ANO || '';
+                
+                // 2. Proteção contra o erro do "replace" (Lê 'valor' ou 'CX_VALOR')
+                let strValor = p.valor || p.CX_VALOR || "0";
+                strValor = String(strValor); // Garante que o tipo seja sempre texto (String)
+                
+                const valorNumerico = parseFloat(strValor.replace(',', '.')) || 0;
 
+                if (valStatus === 'pago') totalPago += valorNumerico;
+                else {
+                    totalAberto += valorNumerico;
+                    if(valStatus === 'vencido') temVencido = true;
+                }
+
+                if (filtro !== 'todos' && valStatus !== filtro) return;
                 contador++;
 
-                // Define estilos baseados no status
-                let iconClass = '';
-                let iconBg = '';
-                let textClass = '';
-                let valorPago = '0,00 R$';
-                let valorAberto = '0,00 R$';
-                let extraInfo = '';
+                let iconClass = '', iconBg = '', textClass = '', valorPago = '0,00 R$', valorAberto = '0,00 R$', extraInfo = '';
 
-                if (p.status === 'aberto') {
-                    iconClass = 'fa-solid fa-hourglass-half';
-                    iconBg = 'bg-blue';
-                    textClass = 'text-blue';
-                    valorAberto = `${p.valor} R$`;
-                } else if (p.status === 'vencido') {
-                    iconClass = 'fa-solid fa-circle-exclamation';
-                    iconBg = 'bg-red';
-                    textClass = 'text-red';
-                    valorAberto = `${p.valor} R$`;
-                } else if (p.status === 'pago') {
-                    iconClass = 'fa-solid fa-check';
-                    iconBg = 'bg-green';
-                    textClass = 'text-green';
-                    valorPago = `${p.valor} R$`;
-                    extraInfo = `<span class="parcela-vcto" style="display:block">Pgto.: ${p.pgto}</span>`;
+                // Formata o valor já validado para exibição no card
+                const valorFormatado = valorNumerico.toLocaleString('pt-br', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+                if (valStatus === 'aberto') {
+                    iconClass = 'fa-solid fa-hourglass-half'; iconBg = 'bg-blue'; textClass = 'text-blue'; valorAberto = `${valorFormatado} R$`;
+                } else if (valStatus === 'vencido') {
+                    iconClass = 'fa-solid fa-circle-exclamation'; iconBg = 'bg-red'; textClass = 'text-red'; valorAberto = `${valorFormatado} R$`;
+                } else if (valStatus === 'pago') {
+                    iconClass = 'fa-solid fa-check'; iconBg = 'bg-green'; textClass = 'text-green'; valorPago = `${valorFormatado} R$`;
+                    extraInfo = `<span class="parcela-vcto" style="display:block">Pgto.: ${valPgto}</span>`;
                 }
 
-                // HTML do Card
                 const cardHTML = `
                 <div class="parcela-card" onclick="window.location.href='parcela.html'">
                     <div class="card-main">
                         <div class="status-icon ${iconBg}"><i class="${iconClass}"></i></div>
                         <div class="card-details">
-                            <span class="parcela-title">PARCELA: ${p.id}</span>
-                            <span class="parcela-vcto">Vcto.: ${p.vencimento}</span>
+                            <span class="parcela-title">PARCELA: ${valID}</span>
+                            <span class="parcela-vcto">Vcto.: ${valVencimento}</span>
                             ${extraInfo}
                         </div>
                         <div class="card-values">
-                            <span class="val-label">Pago</span> <span class="val-text ${p.status === 'pago' ? 'text-green' : ''}">${valorPago}</span>
+                            <span class="val-label">Pago</span> <span class="val-text ${valStatus === 'pago' ? 'text-green' : ''}">${valorPago}</span>
                             <span class="val-label">Em Aberto</span> <span class="val-text val-total ${textClass}">${valorAberto}</span>
                         </div>
                         <i class="fa-solid fa-chevron-right arrow-right"></i>
                     </div>
                     <div class="card-footer">
-                        <i class="fa-regular fa-comment-dots"></i> MÊS: ${p.mes} ANO: ${p.ano}
+                        <i class="fa-regular fa-comment-dots"></i> MÊS: ${valMes} ANO: ${valAno}
                     </div>
-                </div>
-            `;
+                </div>`;
                 container.innerHTML += cardHTML;
             });
 
-            // Mostra estado vazio se não houver itens
-            if (contador === 0) {
-                emptyState.style.display = 'block';
+            // Atualiza resumo
+            document.getElementById('resumo-pago').innerText = totalPago.toLocaleString('pt-br', { style: 'currency', currency: 'BRL' });
+            document.getElementById('resumo-aberto').innerText = totalAberto.toLocaleString('pt-br', { style: 'currency', currency: 'BRL' });
+            
+            const situacaoTxt = document.getElementById('resumo-situacao');
+            if (temVencido) {
+                situacaoTxt.innerText = "Pendente";
+                situacaoTxt.style.color = "red";
+            } else if (parcelasAtuais.length > 0) {
+                situacaoTxt.innerText = "Regular";
+                situacaoTxt.style.color = "green";
             } else {
-                emptyState.style.display = 'none';
+                situacaoTxt.innerText = "Sem Lançamentos";
+                situacaoTxt.style.color = "#888";
             }
+
+            emptyState.style.display = (contador === 0) ? 'block' : 'none';
         }
 
-        // Função de Controle dos Filtros
         function filtrar(tipo, elemento) {
-            // Remove active de todos
-            document.querySelectorAll('.badge').forEach(b => {
-                b.className = 'badge'; // Reseta classes
-            });
-
-            // Adiciona cor específica ao ativo
+            document.querySelectorAll('.badge').forEach(b => b.className = 'badge');
             if (tipo === 'todos') elemento.classList.add('active-dark');
             if (tipo === 'aberto') elemento.classList.add('active-blue');
             if (tipo === 'vencido') elemento.classList.add('active-red');
             if (tipo === 'pago') elemento.classList.add('active-green');
-
             renderizarLista(tipo);
         }
-function carregarContratos() {
-        const container = document.getElementById('listaContratos');
-        const emptyState = document.getElementById('emptyState');
-        
-        container.innerHTML = '';
-        let jsonContratos = [];
 
-         if(typeof Android == 'undefined') {
-        
-        jsonContratos = [
-                {
-                    "CLI_CODIGO": "0055-A1",
-                    "CLI_NOME": "Ivoneide S. Nava Araujo",
-                    "CLI_SITUACAO": "ATIVO"
-                },
-                {
-                    "CLI_CODIGO": "0088-B2",
-                    "CLI_NOME": "Ivoneide S. Nava Araujo",
-                    "CLI_SITUACAO": "INATIVO"
-                }
-            ];        
-        }
-        // Verifica se a interface nativa do Android está disponível
-        if (typeof Android !== 'undefined' && Android.getListaContratos) {
-            // Chama a função do Kotlin que consome o DadosJson
-            const dadosString = Android.getListaContratos();
-            if (dadosString) {
-                jsonContratos = JSON.parse(dadosString);
-            }
-        } else {
-            console.log("Interface Android não encontrada. Rodando no navegador?");
-        }
-
-        // Se o banco retornar vazio
-        if (jsonContratos.length === 0) {
-            emptyState.style.display = 'block';
-            return;
-        }
-
-        // Preenche a tela
-        jsonContratos.forEach(contrato => {
-            const statusClass = (contrato.CLI_SITUACAO.toUpperCase() === 'ATIVO') ? 'status-ativo' : 'status-inativo';
+        // ==========================================
+        // UTILITÁRIOS
+        // ==========================================
+        function switchTab(event, tabId) {
+            document.querySelectorAll('.tab-item').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.content-section').forEach(section => section.classList.remove('active'));
             
-            const cardHTML = `
-                <div class="contract-card" onclick="selecionarContrato('${contrato.CLI_CODIGO}','${contrato.CLI_NOME}')">
-                    <div class="icon-container">
-                        <i class="fa-solid fa-file-signature"></i>
-                    </div>
-                    <div class="info-container">
-                        <span class="cli-nome">${contrato.CLI_NOME}</span>
-                        <span class="cli-codigo"><i class="fa-solid fa-hashtag"></i> ${contrato.CLI_CODIGO}</span>
-                        <span class="cli-status ${statusClass}">${contrato.CLI_SITUACAO}</span>
-                    </div>
-                    <i class="fa-solid fa-chevron-right arrow-icon"></i>
-                </div>
-            `;
-            container.innerHTML += cardHTML;
-        });
-    }
-
-    function selecionarContrato(codigo, cli_nome) {
-        if(typeof Android !== 'undefined' && Android.SelecionarContrato) {
-            // Chama o método no Kotlin passando o código
-            Android.SelecionarContrato(codigo, cli_nome);
-        } else {
-            alert("Contrato selecionado: " + codigo +","+ cli_nome);
+            if(event && event.currentTarget) {
+                event.currentTarget.classList.add('active');
+            } else {
+                document.querySelector(`.tab-item[onclick*="${tabId}"]`).classList.add('active');
+            }
+            document.getElementById(tabId).classList.add('active');
         }
-    }
-
-        // Renderiza inicial (Todos)
-        renderizarLista('todos');
-window.onload = carregarContratos;
     </script>
 </body>
-
 </html>

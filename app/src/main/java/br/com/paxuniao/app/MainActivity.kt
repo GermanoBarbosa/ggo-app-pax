@@ -43,8 +43,8 @@ class MainActivity : ComponentActivity() {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     // Chamada da WebView passando o preenchimento do Scaffold
                     WebViewScreen(
-                        url = "file:///android_asset/login.html",  // Substitua pela sua URL
-                        ///url = "file:///android_asset/login_verifica_codigo.html",  // Substitua pela sua URL
+                        //url = "file:///android_asset/login.html",  // Substitua pela sua URL
+                        url = "file:///android_asset/contrato.html",  // Substitua pela sua URL
 
                         activity = this@MainActivity, // Passa a referência da activity
                         modifier = Modifier.padding(innerPadding),
@@ -359,9 +359,9 @@ class WebAppInterface(private val activity: ComponentActivity, private val webVi
         dados.putString("CLIENTE_ATIVO", clienteAtivo)
         Log.i("Contrato selecionado " + codigoContrato, codigoContrato)
         // Navega para a home. Como altera a UI, precisa rodar na thread principal
-        webView.post {
-            webView.loadUrl("file:///android_asset/contrato.html")
-        }
+      //  webView.post {
+      //      webView.loadUrl("file:///android_asset/contrato.html")
+      //  }
     }
 
     //home.html

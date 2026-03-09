@@ -408,7 +408,13 @@ public class Dados {
          */
         public String getContratosJson() {
             // Traz o código, nome e situação da tabela TB_CLI
-            String sql = "SELECT CLI_CODIGO, CLI_NOME, CLI_SITUACAO FROM TB_CLI ORDER BY CLI_NOME ASC";
+            var codigoContrato = getString("CONTRATO_ATIVO");
+            String sql = "SELECT CLI_CODIGO, CLI_NOME, CLI_SITUACAO, " +"" +
+                    "CASE " +
+                    "        WHEN CLI_CODIGO = '" + codigoContrato +"' THEN -1 " +
+                    "        ELSE 0 " +
+                    "    END AS CLI_SELECIONADO"+
+                    " FROM TB_CLI ORDER BY CLI_NOME ASC";
             return obterJsonGenerico(sql);
         }
 
