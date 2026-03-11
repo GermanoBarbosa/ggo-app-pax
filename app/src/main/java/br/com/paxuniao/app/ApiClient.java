@@ -312,4 +312,49 @@ public class ApiClient {
             callback.onError(e.getMessage());
         }
     }
+
+    // ===============================
+    // /app/conveniados (Busca TB_CONVENIADOS)
+    // ===============================
+    public void buscarConveniados(String accessToken, ApiCallback callback) {
+        try {
+            JSONObject json = new JSONObject();
+            json.put("access_token", accessToken);
+
+            RequestBody body = RequestBody.create(json.toString(), JSON);
+
+            Request request = new Request.Builder()
+                    .url(BASE_URL + "/app/conveniados") // Ajuste a rota se necessário
+                    .post(body)
+                    .addHeader("Content-Type", "application/json")
+                    .build();
+
+            client.newCall(request).enqueue(new DefaultCallback(callback));
+        } catch (Exception e) {
+            callback.onError(e.getMessage());
+        }
+    }
+
+    // ===============================
+    // /app/cliente/dados_completos (Busca TB_CLI e TB_DEPENDENTES aninhados)
+    // ===============================
+    public void buscarDadosCompletos(String accessToken, String cpf, ApiCallback callback) {
+        try {
+            JSONObject json = new JSONObject();
+            json.put("access_token", accessToken);
+            json.put("cpf", cpf);
+
+            RequestBody body = RequestBody.create(json.toString(), JSON);
+
+            Request request = new Request.Builder()
+                    .url(BASE_URL + "/app/cliente/dados_completos") // Novo Endpoint
+                    .post(body)
+                    .addHeader("Content-Type", "application/json")
+                    .build();
+
+            client.newCall(request).enqueue(new DefaultCallback(callback));
+        } catch (Exception e) {
+            callback.onError(e.getMessage());
+        }
+    }
 }

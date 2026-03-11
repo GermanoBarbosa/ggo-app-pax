@@ -76,8 +76,6 @@ public class Dados {
 
     @SuppressLint("Range")
     private void update_db(){
-       String sql;
-        sql="";
         Cursor cursor = BancoDados.query(
                 "TBSYS",
                 new String[] { "S_KEY", "S_TIPO"  }, "S_KEY='ver'", null, null, null, null);
@@ -96,7 +94,7 @@ public class Dados {
         Log.i("Banco Versão",mStep+"");
 
         //-- 1. Tabela de Logon
-        sql=    "CREATE TABLE TB_LOGIN (" +
+        String sql=    "CREATE TABLE TB_LOGIN (" +
                 "    LOGIN_SEQ INTEGER PRIMARY KEY AUTOINCREMENT," +
                 "    LOGIN_CPF TEXT NOT NULL UNIQUE," +
                 "    LOGIN_SENHA TEXT NOT NULL" +
@@ -312,10 +310,17 @@ public class Dados {
         return obterJsonGenerico(sql);
     }
 
+    // Substitua a função getJsonConveniados existente por esta:
     public String getJsonConveniados() {
-        // Busca todos os conveniados ordenados por nome
-        //String sql = "SELECT * FROM TB_CONVENIADOS ORDER BY CVN_NOME ASC";
-        String sql = "{[{\"CONV_NOME\":\"Clínica Saúde & Vida\",\"CONV_ENDERECO\":\"Rua das Flores, 123\",\"CONV_CATEGORIA\":\"saude\",\"CONV_DESCONTO\":\"20% OFF\",\"CONV_ICONE\":\"fa-user-md\"},{\"CONV_NOME\":\"Farmácia Popular\",\"CONV_ENDERECO\":\"Av. Principal, 500\",\"CONV_CATEGORIA\":\"saude\",\"CONV_DESCONTO\":\"Até 50% OFF\",\"CONV_ICONE\":\"fa-pills\"},{\"CONV_NOME\":\"Academia Corpo Ativo\",\"CONV_ENDERECO\":\"Rua Treze de Maio, 88\",\"CONV_CATEGORIA\":\"Lazer\",\"CONV_DESCONTO\":\"Matrícula Grátis\",\"CONV_ICONE\":\"fa-dumbbell\"},{\"CONV_NOME\":\"Escola Saber\",\"CONV_ENDERECO\":\"Rua Treze de Maio, 88\",\"CONV_CATEGORIA\":\"educacao\",\"CONV_DESCONTO\":\"Matrícula Grátis\",\"CONV_ICONE\":\"fa-graduation-cap\"}]}";
+        // Selecionamos do banco e já renomeamos (AS) para os nomes que o HTML espera ler
+        String sql = "SELECT " +
+                "CVN_NOME AS CONV_NOME, " +
+                "CVN_DESCRICAO AS CONV_ENDERECO, " +
+                "CVN_CATEGORIA AS CONV_CATEGORIA, " +
+                "CVN_DESCONTO AS CONV_DESCONTO, " +
+                "CVN_ICONE_HASH AS CONV_ICONE " +
+                "FROM TB_CONVENIADOS ORDER BY CVN_NOME ASC";
+
         return obterJsonGenerico(sql);
     }
 
@@ -563,6 +568,36 @@ public class Dados {
             Log.e(TAG, "Erro ao contar registros em TB_CLI: " + e.getMessage());
         }
         return count;
+    }
+
+    // Adicione esta nova função junto das outras de sincronização (ex: perto de sincronizarParcelasApi)
+    public void sincronizarConveniadosApi(JSONArray conveniadosArray) {
+        try {
+            BancoDados.beginTransaction();
+
+            // Limpa os parceiros antigos para não duplicar
+            BancoDados.execSQL("DELETE FROM TB_CONVENIADOS");
+
+            String sql = "INSERT INTO TB_CONVENIADOS (CVN_NOME, CVN_DESCRICAO, CVN_CATEGORIA, CVN_DESCONTO, CVN_ICONE_HASH) VALUES (?, ?, ?, ?, ?)";
+
+            for (int i = 0; i < conveniadosArray.length(); i++) {
+                JSONObject conv = conveniadosArray.getJSONObject(i);
+
+                BancoDados.execSQL(sql, new Object[]{
+                        conv.optString("CONV_NOME", ""),
+                        conv.optString("CONV_ENDERECO", ""), // A API manda endereco, o banco salva como descricao
+                        conv.optString("CONV_CATEGORIA", "outros"),
+                        conv.optString("CONV_DESCONTO", ""),
+                        conv.optString("CONV_ICONE", "fa-store") // Padrão se não vier nada
+                });
+            }
+
+            BancoDados.setTransactionSuccessful();
+        } catch (Exception e) {
+            Log.e(TAG, "Erro ao sincronizar conveniados", e);
+        } finally {
+            BancoDados.endTransaction();
+        }
     }
 }
 

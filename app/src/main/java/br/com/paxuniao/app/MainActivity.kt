@@ -22,7 +22,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.AndroidView
+import br.com.paxuniao.app.ApiClient.ApiCallback
+import br.com.paxuniao.app.Parametros.BASE_URL
 import br.com.paxuniao.app.ui.theme.ClientesTheme
+import okhttp3.RequestBody
+import org.json.JSONObject
+
 
 class MainActivity : ComponentActivity() {
 
@@ -409,8 +414,15 @@ class WebAppInterface(private val activity: ComponentActivity, private val webVi
     @JavascriptInterface
     fun getDependentesAtivo(): String {
         val codigo = dados.getString("CONTRATO_ATIVO")
+        Log.i("getDependentesAtivo","getDependentesAtivo")
         return dados.getJsonDependentes(codigo) // Esse também já existe!
     }
+
+    @JavascriptInterface
+    fun getDependentes(cliCodigo: String?): String {
+        return dados.getJsonDependentes(cliCodigo)
+    }
+
 
 
     @android.webkit.JavascriptInterface
@@ -556,9 +568,14 @@ class WebAppInterface(private val activity: ComponentActivity, private val webVi
      * Sincroniza os dados do usuário (Pode retornar múltiplos clientes/contratos)
      * Encadeia as requisições para garantir a ordem correta e aguarda todas terminarem.
      */
+
+    /**
+     * Sincroniza os dados do usuário (Pode retornar múltiplos clientes/contratos)
+     * Utiliza o novo endpoint consolidado e encadeia o financeiro.
+     */
     private fun sincronizarDadosDoServidor(cpf: String, accessToken: String, onComplete: () -> Unit, onError: (String) -> Unit) {
-        // 1. Busca os dados principais (Retorna o Array de Clientes)
-        apiClient.buscarDadosCliente(accessToken, cpf, object : ApiClient.ApiCallback {
+        // 1. Busca os dados completos (Clientes e Dependentes aninhados)
+        apiClient.buscarDadosCompletos(accessToken, cpf, object : ApiClient.ApiCallback {
             override fun onSuccess(clienteResp: org.json.JSONObject) {
                 try {
                     val respStatus = clienteResp.optString("resp")
@@ -576,7 +593,9 @@ class WebAppInterface(private val activity: ComponentActivity, private val webVi
                     val totalClientes = dadosArray.length()
                     var clientesProcessados = 0
                     var ocorreuErro = false // Flag para evitar chamar onError múltiplas vezes
+
                     dados.apagacliantes()
+
                     // Loop por cada contrato/cliente retornado no JSON
                     for (i in 0 until totalClientes) {
                         val cliJson = dadosArray.getJSONObject(i)
@@ -592,43 +611,42 @@ class WebAppInterface(private val activity: ComponentActivity, private val webVi
                         // 2. Salva o cliente no banco local (Assumindo LOGIN_SEQ = 1)
                         dados.sincronizarClienteApi(1, cliJson)
 
-                        // 3. Busca os Dependentes Deste Cliente Específico
-                        apiClient.buscarDependentes(accessToken, cliCodigo, object : ApiClient.ApiCallback {
-                            override fun onSuccess(depResp: org.json.JSONObject) {
-                                if (ocorreuErro) return // Se já deu erro em outro laço, aborta a gravação
+                        // 3. Busca e salva os Dependentes aninhados na mesma resposta
+                        val depArray = cliJson.optJSONArray("dependentes") ?: org.json.JSONArray()
+                        dados.sincronizarDependentesApi(cliCodigo, depArray)
 
-                                val depArray = depResp.optJSONArray("dados") ?: org.json.JSONArray()
-                                dados.sincronizarDependentesApi(cliCodigo, depArray)
+                        // 4. Busca as Parcelas Deste Cliente Específico
+                        apiClient.buscarParcelas(accessToken, cliCodigo, object : ApiClient.ApiCallback {
+                            override fun onSuccess(parcResp: org.json.JSONObject) {
+                                if (ocorreuErro) return
 
-                                // 4. Busca as Parcelas Deste Cliente Específico
-                                apiClient.buscarParcelas(accessToken, cliCodigo, object : ApiClient.ApiCallback {
-                                    override fun onSuccess(parcResp: org.json.JSONObject) {
-                                        if (ocorreuErro) return
+                                val parcArray = parcResp.optJSONArray("dados") ?: org.json.JSONArray()
+                                dados.sincronizarParcelasApi(cliCodigo, parcArray)
 
-                                        val parcArray = parcResp.optJSONArray("dados") ?: org.json.JSONArray()
-                                        dados.sincronizarParcelasApi(cliCodigo, parcArray)
-
-                                        // === VERIFICAÇÃO DE CONCLUSÃO ===
-                                        // Incrementa e verifica se todos os clientes já terminaram
-                                        clientesProcessados++
-                                        if (clientesProcessados == totalClientes && !ocorreuErro) {
-                                            onComplete() // Todos os contratos baixados com sucesso!
+                                // === VERIFICAÇÃO DE CONCLUSÃO ===
+                                clientesProcessados++
+                                if (clientesProcessados == totalClientes && !ocorreuErro) {
+                                    // Sincroniza os Conveniados por último, pois são gerais (não dependem do cliente)
+                                    apiClient.buscarConveniados(accessToken, object : ApiClient.ApiCallback {
+                                        override fun onSuccess(convResp: org.json.JSONObject) {
+                                            val convArray = convResp.optJSONArray("dados") ?: org.json.JSONArray()
+                                            dados.sincronizarConveniadosApi(convArray)
+                                            onComplete() // Todos os dados baixados com sucesso!
                                         }
-                                    }
 
-                                    override fun onError(error: String) {
-                                        if (!ocorreuErro) {
-                                            ocorreuErro = true
-                                            onError("Falha ao sincronizar financeiro ($cliCodigo): $error")
+                                        override fun onError(error: String) {
+                                            // Se der erro nos conveniados, loga, mas deixa o usuário logar mesmo assim
+                                            Log.e("SYNC", "Falha ao sincronizar conveniados: $error")
+                                            onComplete()
                                         }
-                                    }
-                                })
+                                    })
+                                }
                             }
 
                             override fun onError(error: String) {
                                 if (!ocorreuErro) {
                                     ocorreuErro = true
-                                    onError("Falha ao sincronizar dependentes ($cliCodigo): $error")
+                                    onError("Falha ao sincronizar financeiro ($cliCodigo): $error")
                                 }
                             }
                         })

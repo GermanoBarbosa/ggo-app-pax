@@ -585,6 +585,7 @@
         };
 
         let parcelasAtuais = []; // Guarda as parcelas do contrato ativo
+        let todosContratos = [];
 
         // ==========================================
         // LÓGICA DE INICIALIZAÇÃO
@@ -612,27 +613,33 @@
         // ==========================================
         // GESTÃO DE DADOS DO CONTRATO
         // ==========================================
+        // ==========================================
+        // GESTÃO DE DADOS DO CONTRATO
+        // ==========================================
+        
+        // NOVO: Variável global para guardar a lista e permitir atualização visual
+       
+
         function carregarDadosDoAndroid() {
             try {
-                let jsonContratos = []; 
-
                 if (typeof Android === 'undefined') {
                     // Mock: Simulando o 0088-B2 como selecionado (-1)
-                    jsonContratos = [
+                    todosContratos = [
                         { "CLI_CODIGO": "0055-A1", "CLI_NOME": "Ivoneide S. Nava Araujo", "CLI_SITUACAO": "ATIVO", "CLI_SELECIONADO": 0 },
                         { "CLI_CODIGO": "0088-B2", "CLI_NOME": "Ivoneide S. Nava Araujo", "CLI_SITUACAO": "INATIVO", "CLI_SELECIONADO": -1 }
                     ];
                 } else if (Android.getListaContratos) {
                     const dadosString = Android.getListaContratos();
-                    if(dadosString) jsonContratos = JSON.parse(dadosString);
+                    if(dadosString) todosContratos = JSON.parse(dadosString);
                 }
 
-                renderizarListaContratos(jsonContratos);
+                // Renderiza a lista na aba "Outros"
+                renderizarListaContratos(todosContratos);
 
-                if (jsonContratos && jsonContratos.length > 0) {
+                if (todosContratos && todosContratos.length > 0) {
                     // Busca o contrato onde CLI_SELECIONADO é -1. Se não achar, pega o primeiro.
-                    let contratoSelecionado = jsonContratos.find(c => c.CLI_SELECIONADO == -1);
-                    if (!contratoSelecionado) contratoSelecionado = jsonContratos[0];
+                    let contratoSelecionado = todosContratos.find(c => c.CLI_SELECIONADO == -1);
+                    if (!contratoSelecionado) contratoSelecionado = todosContratos[0];
                     
                     aplicarContratoAtivo(contratoSelecionado.CLI_CODIGO, contratoSelecionado.CLI_NOME);
                 }
@@ -641,19 +648,19 @@
             }
         }
 
-        function renderizarListaContratos(jsonContratos) {
+        function renderizarListaContratos(lista) {
             const container = document.getElementById('listaContratos');
             const emptyState = document.getElementById('emptyStateContratos');
             container.innerHTML = '';
             
-            if (jsonContratos.length === 0) {
+            if (lista.length === 0) {
                 emptyState.style.display = 'block';
                 return;
             } else {
                 emptyState.style.display = 'none';
             }
 
-            jsonContratos.forEach(contrato => {
+            lista.forEach(contrato => {
                 const statusClass = (contrato.CLI_SITUACAO.toUpperCase() === 'ATIVO') ? 'status-ativo' : 'status-inativo';
                 const isSelecionado = (contrato.CLI_SELECIONADO == -1);
                 
@@ -685,23 +692,23 @@
         }
 
         function selecionarContrato(codigo, cli_nome) {
+            // 1. Aplica as informações na tela
             aplicarContratoAtivo(codigo, cli_nome);
             
-            // Muda para a aba "Contrato"
+            // 2. Muda para a aba "Contrato"
             switchTab(null, 'dados');
 
-            // Recarrega a lista de contratos novamente simulando o novo CLI_SELECIONADO = -1 (Apenas para o Mock funcionar 100% visualmente)
-            if (typeof Android === 'undefined') {
-                const navMock = [
-                    { "CLI_CODIGO": "0055-A1", "CLI_NOME": "Ivoneide S. Nava Araujo", "CLI_SITUACAO": "ATIVO", "CLI_SELECIONADO": codigo === "0055-A1" ? -1 : 0 },
-                    { "CLI_CODIGO": "0088-B2", "CLI_NOME": "Ivoneide S. Nava Araujo", "CLI_SITUACAO": "INATIVO", "CLI_SELECIONADO": codigo === "0088-B2" ? -1 : 0 }
-                ];
-                renderizarListaContratos(navMock);
-            }
+            // 3. NOVO: Atualiza a marcação "Atual" na aba "Outros"
+            todosContratos.forEach(c => {
+                // Marca -1 no que foi clicado, e 0 nos demais
+                c.CLI_SELECIONADO = (c.CLI_CODIGO === codigo) ? -1 : 0; 
+            });
+            // Re-renderiza a lista para aplicar o efeito visual na hora
+            renderizarListaContratos(todosContratos);
 
-            // Notifica o Android
+            // 4. Notifica o Android
             if (typeof Android !== 'undefined' && Android.SelecionarContrato) {
-                Android.SelecionarContrato(codigo, cli_nome); // Isso deve atualizar o banco/API nativamente
+                Android.SelecionarContrato(codigo, cli_nome); 
             } else {
                 console.log("Teste Navegador - Contrato alterado para: " + codigo);
             }
@@ -713,34 +720,46 @@
         function carregarDependentes(codigo) {
             const container = document.getElementById('container-dependentes');
             container.innerHTML = ''; 
-
+            console.log("Carregando dependentes para contrato: " + codigo);
             let listaDeps = [];
+            
             if (typeof Android === 'undefined') {
                 listaDeps = mockDependentes[codigo] || [];
             } else if (Android.getDependentes) {
                 const dadosStr = Android.getDependentes(codigo);
                 if (dadosStr) listaDeps = JSON.parse(dadosStr);
             }
-
+            
             if (listaDeps.length === 0) {
                 container.innerHTML = '<p style="color: #888; font-size: 14px; text-align: center; padding: 20px;">Nenhum dependente encontrado para este contrato.</p>';
                 return;
             }
 
             listaDeps.forEach(dep => {
-                const isAtivo = dep.status.toUpperCase() === 'ATIVO';
+                // Adaptação: lê a chave do Mock ou a chave real do Banco de Dados (SQLite)
+                const valNome = dep.nome || dep.DEP_NOME || 'Sem nome';
+                const valGrau = dep.grau || dep.DEP_GRAU_PARENTESCO || 'Não informado';
+                const valIdade = dep.idade || ''; 
+                
+                // Como o banco não tem status para o dependente, assumimos 'ATIVO'
+                const valStatus = (dep.status || 'ATIVO').toUpperCase(); 
+
+                const isAtivo = valStatus === 'ATIVO';
                 const statusColor = isAtivo ? '#2e7d32' : '#c62828';
                 const statusBg = isAtivo ? '#e8f5e9' : '#ffebee';
+                
+                // Só mostra o campo Idade se a informação existir
+                const htmlIdade = valIdade ? `<span class="dep-idade">Idade: ${valIdade}</span>` : '';
 
                 const html = `
                 <div class="dependent-card">
                     <div class="icon-container"><i class="fa-solid fa-user-group"></i></div>
                     <div class="dep-info">
-                        <span class="dep-nome">${dep.nome}</span>
-                        <span class="dep-grau">Grau: ${dep.grau}</span>
-                        <span class="dep-idade">Idade: ${dep.idade}</span>
+                        <span class="dep-nome">${valNome}</span>
+                        <span class="dep-grau">Grau: ${valGrau}</span>
+                        ${htmlIdade}
                     </div>
-                    <div style="font-size: 10px; font-weight: bold; padding: 4px 8px; border-radius: 10px; background-color: ${statusBg}; color: ${statusColor};">${dep.status}</div>
+                    <div style="font-size: 10px; font-weight: bold; padding: 4px 8px; border-radius: 10px; background-color: ${statusBg}; color: ${statusColor};">${valStatus}</div>
                 </div>`;
                 container.innerHTML += html;
             });
@@ -872,6 +891,21 @@
                 document.querySelector(`.tab-item[onclick*="${tabId}"]`).classList.add('active');
             }
             document.getElementById(tabId).classList.add('active');
+
+            // Quando o usuário muda de aba, força recarregar os dados do contrato atualmente exibido
+            const codigoAtual = document.getElementById('val-contrato')?.innerText;
+            if (!codigoAtual || codigoAtual === '...') return;
+
+            if (tabId === 'dependentes') {
+                carregarDependentes(codigoAtual);
+            }
+            if (tabId === 'financeiro') {
+                carregarFinanceiro(codigoAtual);
+            }
+            if (tabId === 'outros') {
+                // garante que, ao voltar para "Outros", o contrato selecionado apareça como "Atual"
+                renderizarListaContratos(todosContratos);
+            }
         }
     </script>
 </body>

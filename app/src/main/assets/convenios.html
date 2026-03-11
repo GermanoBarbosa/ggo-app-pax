@@ -93,59 +93,55 @@
 </div>
 
 <script>
-    function filterCategory(element, category) {
-        document.querySelectorAll('.cat-item').forEach(item => item.classList.remove('active'));
-        element.classList.add('active');
-        const cards = document.querySelectorAll('.partner-card');
-        cards.forEach(card => {
-            if (category === 'todos' || card.getAttribute('data-category') === category) {
-                card.classList.remove('hidden');
-            } else { card.classList.add('hidden'); }
-        });
-    }
-    function filterSearch() {
-        const input = document.getElementById('searchInput').value.toLowerCase();
-        const cards = document.querySelectorAll('.partner-card');
-        cards.forEach(card => {
-            const name = card.querySelector('.partner-name').innerText.toLowerCase();
-            if (name.includes(input)) { card.classList.remove('hidden'); } else { card.classList.add('hidden'); }
-        });
-    }
-</script>
-<script>
-    // 1. Função chamada ao abrir a página
     window.onload = function() {
-        carregarConveniadosDoAndroid();
+        carregarConveniados();
     };
 
-    function carregarConveniadosDoAndroid() {
-        try {
-            // Busca o JSON do Android (Método getConveniados no seu Dados.java)
-            const dadosBrutos = Android.getConveniados(); 
-            const parceiros = JSON.parse(dadosBrutos);
-            
-            renderizarCards(parceiros);
-        } catch (e) {
-            console.error("Erro ao carregar conveniados:", e);
-            document.getElementById('lista-conveniados').innerHTML = "<p>Erro ao carregar dados.</p>";
+    function carregarConveniados() {
+        let dadosBrutos = "";
+
+        // Tenta buscar do Android SQLite via MainActivity.kt
+        if (typeof Android !== "undefined") {
+            try {
+                dadosBrutos = Android.getConveniados(); 
+            } catch (e) {
+                console.error("Erro Android:", e);
+            }
         }
+
+        // Se falhar ou estiver testando no navegador sem o Android
+        if (!dadosBrutos) {
+            document.getElementById('lista-conveniados').innerHTML = "<p style='text-align:center; padding:20px; color:#888;'>Nenhum parceiro encontrado.</p>";
+            return;
+        }
+
+        const parceiros = JSON.parse(dadosBrutos);
+        renderizarCards(parceiros);
     }
 
     function renderizarCards(lista) {
         const container = document.getElementById('lista-conveniados');
-        container.innerHTML = ''; // Limpa o carregando
+        container.innerHTML = ''; 
+
+        if(lista.length === 0) {
+            container.innerHTML = "<p style='text-align:center; padding:20px; color:#888;'>Nenhum parceiro disponível.</p>";
+            return;
+        }
 
         lista.forEach(p => {
-            // Mapeia os campos da sua TB_CONVENIADOS
+            const icone = p.CONV_ICONE || 'fa-store'; // Padrão caso venha vazio
+            
             const card = document.createElement('div');
             card.className = 'partner-card';
             card.setAttribute('data-category', p.CONV_CATEGORIA.toLowerCase());
             
             card.innerHTML = `
-                <img src="${p.CONV_FOTO || 'https://via.placeholder.com/60'}" class="partner-img">
+                <div class="partner-logo">
+                    <i class="fa-solid ${icone}"></i>
+                </div>
                 <div class="partner-info">
                     <div class="partner-name">${p.CONV_NOME}</div>
-                    <div class="partner-details">
+                    <div class="partner-desc">
                         <i class="fa-solid fa-location-dot"></i> ${p.CONV_ENDERECO}
                     </div>
                     <div class="discount-badge">${p.CONV_DESCONTO}</div>
@@ -155,7 +151,6 @@
         });
     }
 
-    // Mantém sua função de busca original, mas agora filtrando os cards dinâmicos
     function filterSearch() {
         const input = document.getElementById('searchInput').value.toLowerCase();
         const cards = document.querySelectorAll('.partner-card');
@@ -165,7 +160,6 @@
         });
     }
 
-    // Mantém sua função de categoria original
     function filterCategory(element, category) {
         document.querySelectorAll('.cat-item').forEach(item => item.classList.remove('active'));
         element.classList.add('active');
@@ -178,89 +172,6 @@
             } else {
                 card.style.display = 'none';
             }
-        });
-    }
-</script>
-<script>
-    window.onload = function() {
-        carregarConveniados();
-    };
-
-    function carregarConveniados() {
-        let dadosBrutos = "";
-
-        // Tenta buscar do Android
-        if (typeof Android !== "undefined") {
-            try {
-              ///  dadosBrutos = Android.getConveniados(); 
-            } catch (e) {
-                console.error("Erro Android:", e);
-            }
-        }
-
-        // Fallback: Se não houver Android ou dados, usa o JSON de exemplo com ícones
-        if (!dadosBrutos) {
-            dadosBrutos = JSON.stringify([
-                {
-                    "CONV_NOME": "Clínica Saúde & Vida",
-                    "CONV_ENDERECO": "Rua das Flores, 123",
-                    "CONV_CATEGORIA": "saude",
-                    "CONV_DESCONTO": "20% OFF",
-                    "CONV_ICONE": "fa-user-md" 
-                },
-                {
-                    "CONV_NOME": "Farmácia Popular",
-                    "CONV_ENDERECO": "Av. Principal, 500",
-                    "CONV_CATEGORIA": "saude",
-                    "CONV_DESCONTO": "Até 50% OFF",
-                    "CONV_ICONE": "fa-pills"
-                },
-                {
-                    "CONV_NOME": "Academia Corpo Ativo",
-                    "CONV_ENDERECO": "Rua Treze de Maio, 88",
-                    "CONV_CATEGORIA": "Lazer",
-                    "CONV_DESCONTO": "Matrícula Grátis",
-                    "CONV_ICONE": "fa-dumbbell"
-                },
-                {
-                    "CONV_NOME": "Escola Saber",
-                    "CONV_ENDERECO": "Rua Treze de Maio, 88",
-                    "CONV_CATEGORIA": "educacao",
-                    "CONV_DESCONTO": "Matrícula Grátis",
-                    "CONV_ICONE": "fa-graduation-cap"
-                }
-            ]);
-        }
-
-        const parceiros = JSON.parse(dadosBrutos);
-        renderizarCards(parceiros);
-    }
-
-    function renderizarCards(lista) {
-        const container = document.getElementById('lista-conveniados');
-        container.innerHTML = ''; 
-
-        lista.forEach(p => {
-            // Se o banco não trouxer ícone, usamos um padrão (fa-store)
-            const icone = p.CONV_ICONE || 'fa-store';
-            
-            const card = document.createElement('div');
-            card.className = 'partner-card';
-            card.setAttribute('data-category', p.CONV_CATEGORIA.toLowerCase());
-            
-            card.innerHTML = `
-                <div class="partner-icon-container" style="width: 60px; height: 60px; background: #f0f4f8; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-right: 15px;">
-                    <i class="fa-solid ${icone}" style="font-size: 24px; color: #1a237e;"></i>
-                </div>
-                <div class="partner-info">
-                    <div class="partner-name">${p.CONV_NOME}</div>
-                    <div class="partner-details">
-                        <i class="fa-solid fa-location-dot"></i> ${p.CONV_ENDERECO}
-                    </div>
-                    <div class="discount-badge">${p.CONV_DESCONTO}</div>
-                </div>
-            `;
-            container.appendChild(card);
         });
     }
 </script>
