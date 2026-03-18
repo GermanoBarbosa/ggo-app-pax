@@ -168,7 +168,7 @@ public class ApiClient {
             json.put("access_token", accessToken);
             json.put("cpf", cpf);
             json.put("code", code);
-            json.put("senha", novaSenha); // ATENÇÃO: Altere "senha" para o nome do campo que sua API backend espera
+            json.put("pass", novaSenha); // ATENÇÃO: Altere "senha" para o nome do campo que sua API backend espera
 
             RequestBody body = RequestBody.create(json.toString(), JSON);
 
@@ -247,11 +247,12 @@ public class ApiClient {
     // ===============================
     // /app/cliente/dados (Busca TB_CLI)
     // ===============================
-    public void buscarDadosCliente(String accessToken, String cpf, ApiCallback callback) {
+    public void buscarDadosCliente(String accessToken, String cpf, String sessionToken, ApiCallback callback) {
         try {
             JSONObject json = new JSONObject();
             json.put("access_token", accessToken);
             json.put("cpf", cpf);
+            json.put("session", sessionToken);
 
             RequestBody body = RequestBody.create(json.toString(), JSON);
 
@@ -293,11 +294,14 @@ public class ApiClient {
     // ===============================
     // /app/cliente/parcelas (Busca TB_CX)
     // ===============================
-    public void buscarParcelas(String accessToken, String cliCodigo, ApiCallback callback) {
+    public void buscarParcelas(String accessToken, String cpf, String cliCodigo, String session, ApiCallback callback) {
         try {
             JSONObject json = new JSONObject();
             json.put("access_token", accessToken);
             json.put("cli_codigo", cliCodigo);
+            json.put("session", session);
+            json.put("cpf", cpf);
+
 
             RequestBody body = RequestBody.create(json.toString(), JSON);
 
@@ -316,10 +320,12 @@ public class ApiClient {
     // ===============================
     // /app/conveniados (Busca TB_CONVENIADOS)
     // ===============================
-    public void buscarConveniados(String accessToken, ApiCallback callback) {
+    public void buscarConveniados(String accessToken, String session, String cpf, ApiCallback callback) {
         try {
             JSONObject json = new JSONObject();
             json.put("access_token", accessToken);
+            json.put("session", session);
+            json.put("cpf", cpf);
 
             RequestBody body = RequestBody.create(json.toString(), JSON);
 
@@ -338,11 +344,12 @@ public class ApiClient {
     // ===============================
     // /app/cliente/dados_completos (Busca TB_CLI e TB_DEPENDENTES aninhados)
     // ===============================
-    public void buscarDadosCompletos(String accessToken, String cpf, ApiCallback callback) {
+    public void buscarDadosCompletos(String accessToken, String cpf, String session, ApiCallback callback) {
         try {
             JSONObject json = new JSONObject();
             json.put("access_token", accessToken);
             json.put("cpf", cpf);
+            json.put("session", session);
 
             RequestBody body = RequestBody.create(json.toString(), JSON);
 

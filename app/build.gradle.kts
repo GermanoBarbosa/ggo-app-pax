@@ -1,3 +1,5 @@
+
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -14,9 +16,8 @@ android {
         applicationId = "br.com.paxuniao.app"
         minSdk = 24
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0"
-
+        versionCode = 5
+        versionName = "26.3.$versionCode"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -27,6 +28,15 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+        }
+    }
+
+    applicationVariants.all {
+        val variant = this
+        variant.outputs.all {
+            val output = this as com.android.build.gradle.internal.api.ApkVariantOutputImpl
+            val versionName = variant.versionName
+            output.outputFileName = "app_pax_$versionName.apk"
         }
     }
     compileOptions {
@@ -59,4 +69,9 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     //implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation(libs.okhttp)
+
+// Outras dependências...
+    implementation("androidx.biometric:biometric:1.2.0-alpha05")
+    implementation("androidx.appcompat:appcompat:1.6.1") // Necessário para o FragmentActivity
+
 }

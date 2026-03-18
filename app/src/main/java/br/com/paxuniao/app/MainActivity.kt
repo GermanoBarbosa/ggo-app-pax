@@ -27,9 +27,13 @@ import br.com.paxuniao.app.Parametros.BASE_URL
 import br.com.paxuniao.app.ui.theme.ClientesTheme
 import okhttp3.RequestBody
 import org.json.JSONObject
+import androidx.fragment.app.FragmentActivity
+import androidx.biometric.BiometricManager
+import androidx.biometric.BiometricPrompt
+import androidx.core.content.ContextCompat
 
 
-class MainActivity : ComponentActivity() {
+class MainActivity : FragmentActivity() {
 
     private lateinit var dados: Dados
 
@@ -48,8 +52,8 @@ class MainActivity : ComponentActivity() {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     // Chamada da WebView passando o preenchimento do Scaffold
                     WebViewScreen(
-                        //url = "file:///android_asset/login.html",  // Substitua pela sua URL
-                        url = "file:///android_asset/contrato.html",  // Substitua pela sua URL
+                        url = "file:///android_asset/login.html",  // Substitua pela sua URL
+                        //url = "file:///android_asset/contrato.html",  // Substitua pela sua URL
 
                         activity = this@MainActivity, // Passa a referência da activity
                         modifier = Modifier.padding(innerPadding),
@@ -63,7 +67,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-class WebAppInterface(private val activity: ComponentActivity, private val webView: WebView, private val dados: Dados) {
+class WebAppInterface(private val activity: FragmentActivity, private val webView: WebView, private val dados: Dados) {
 
     // Instância do cliente de API e variáveis para guardar o estado atual da recuperação
     private val apiClient = ApiClient()
@@ -501,39 +505,43 @@ class WebAppInterface(private val activity: ComponentActivity, private val webVi
                             // SUCESSO! Recupera a Session criada no VB6
                             val sessionToken = loginResp.optString("session")
 
-                            // Salva a sessão no SQLite/SharedPreferences (Dados.java)
-                            dados.putString("SESSION_TOKEN", sessionToken)
-                            dados.putString("CPF_ATIVO", cpf) // Útil para requisições futuras
+                            if (sessionToken.length>=32){
+                                // Salva a sessão no SQLite/SharedPreferences (Dados.java)
+                                dados.putString("SESSION_TOKEN", sessionToken)
+                                dados.putString("CPF_ATIVO", cpf) // Útil para requisições futuras
 
-                            // Lógica do Checkbox "Lembrar Senha"
-                            if (lembrar) {
-                                dados.putString("SAVED_CPF", cpf)
-                                dados.putString("SAVED_PASS", pass)
-                            } else {
-                                // Se o usuário desmarcou, apagamos do aparelho
-                                dados.putString("SAVED_CPF", "")
-                                dados.putString("SAVED_PASS", "")
+                                // Lógica do Checkbox "Lembrar Senha"
+                                if (lembrar) {
+                                    dados.putString("SAVED_CPF", cpf)
+                                    dados.putString("SAVED_PASS", pass)
+                                } else {
+                                    // Se o usuário desmarcou, apagamos do aparelho
+                                    dados.putString("SAVED_CPF", "")
+                                    dados.putString("SAVED_PASS", "")
+                                }
+
+                                sincronizarDadosDoServidor(
+                                    cpf = cpf,
+                                    accessToken = lastToken,
+                                    session=sessionToken,
+                                    onComplete = {
+                                        // Só redireciona quando TUDO for baixado e salvo no SQLite
+                                        webView.post {
+                                            //    if (dados.getQuantidadeClientes() >1)
+                                            //   webView.loadUrl("file:///android_asset/selecao_contrato.html")
+                                            //    else
+                                            webView.loadUrl("file:///android_asset/contrato.html")
+                                        }
+                                    },
+                                    onError = { erroMsg ->
+                                        // Se der erro no download dos dados, tira o loading e mostra o erro
+                                        webView.post {
+                                            webView.evaluateJavascript("showLoginError('$erroMsg');", null)
+                                        }
+                                    }
+                                )
                             }
 
-                            sincronizarDadosDoServidor(
-                                cpf = cpf,
-                                accessToken = lastToken,
-                                onComplete = {
-                                    // Só redireciona quando TUDO for baixado e salvo no SQLite
-                                    webView.post {
-                                    //    if (dados.getQuantidadeClientes() >1)
-                                     //   webView.loadUrl("file:///android_asset/selecao_contrato.html")
-                                    //    else
-                                        webView.loadUrl("file:///android_asset/contrato.html")
-                                    }
-                                },
-                                onError = { erroMsg ->
-                                    // Se der erro no download dos dados, tira o loading e mostra o erro
-                                    webView.post {
-                                        webView.evaluateJavascript("showLoginError('$erroMsg');", null)
-                                    }
-                                }
-                            )
 
                         } else {
                             // ERRO DE SENHA OU USUÁRIO
@@ -561,6 +569,94 @@ class WebAppInterface(private val activity: ComponentActivity, private val webVi
         })
     }
     /**
+     * Biometria
+     *
+     *
+     * **/
+
+    @JavascriptInterface
+    fun isBiometricAvailable(): Boolean {
+        val biometricManager = BiometricManager.from(activity)
+        return biometricManager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG or BiometricManager.Authenticators.DEVICE_CREDENTIAL) == BiometricManager.BIOMETRIC_SUCCESS
+    }
+
+    @JavascriptInterface
+    fun authenticateBiometric() {
+        val executor = ContextCompat.getMainExecutor(activity)
+
+        val biometricPrompt = BiometricPrompt(activity, executor,
+            object : BiometricPrompt.AuthenticationCallback() {
+                override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+                    super.onAuthenticationError(errorCode, errString)
+                    showToast("Erro na biometria: $errString")
+                }
+
+                override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+                    super.onAuthenticationSucceeded(result)
+
+                    // MUDANÇA: Pegamos o CPF e a SESSION em vez da senha salva
+                    val cpf = dados.getString("CPF_ATIVO")
+                    val sessionToken = dados.getString("SESSION_TOKEN")
+
+                    if (!cpf.isNullOrEmpty() && !sessionToken.isNullOrEmpty()) {
+                        // 1. Mostra o loading no HTML chamando o JS
+                        webView.post {
+                            webView.evaluateJavascript("toggleLoading(true); document.getElementById('loading-text').innerText = 'Sincronizando...';", null)
+                        }
+
+                        // 2. Gera o token e vai direto para a sincronização
+                        apiClient.gerarToken(object : ApiClient.ApiCallback {
+                            override fun onSuccess(response: org.json.JSONObject) {
+                                lastToken = response.getString("access_token")
+
+                                sincronizarDadosDoServidor(
+                                    cpf = cpf,
+                                    accessToken = lastToken,
+                                    session = sessionToken,
+                                    onComplete = {
+                                        // Redireciona quando tudo for baixado
+                                        webView.post {
+                                            webView.loadUrl("file:///android_asset/contrato.html")
+                                        }
+                                    },
+                                    onError = { erroMsg ->
+                                        // Mostra erro caso a sessão do VB6 tenha expirado ou falhe a rede
+                                        webView.post {
+                                            webView.evaluateJavascript("showLoginError('Sessão expirada ou erro: $erroMsg');", null)
+                                        }
+                                    }
+                                )
+                            }
+
+                            override fun onError(error: String) {
+                                showToast("Erro de autenticação (Token): $error")
+                                webView.post { webView.evaluateJavascript("toggleLoading(false);", null) }
+                            }
+                        })
+
+                    } else {
+                        showToast("Sessão não encontrada. Por favor, faça o login com senha.")
+                    }
+                }
+
+                override fun onAuthenticationFailed() {
+                    super.onAuthenticationFailed()
+                    showToast("Falha na autenticação biométrica.")
+                }
+            })
+
+        val promptInfo = BiometricPrompt.PromptInfo.Builder()
+            .setTitle("Login Biométrico")
+            .setSubtitle("Use sua digital ou rosto para acessar o aplicativo")
+            .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG or BiometricManager.Authenticators.DEVICE_CREDENTIAL)
+            .build()
+
+        activity.runOnUiThread {
+            biometricPrompt.authenticate(promptInfo)
+        }
+    }
+
+    /**
      * Sincroniza os dados do usuário (Cliente, Dependentes e Financeiro)
      * encadeando as requisições para garantir a ordem correta de dependência.
      */
@@ -573,9 +669,9 @@ class WebAppInterface(private val activity: ComponentActivity, private val webVi
      * Sincroniza os dados do usuário (Pode retornar múltiplos clientes/contratos)
      * Utiliza o novo endpoint consolidado e encadeia o financeiro.
      */
-    private fun sincronizarDadosDoServidor(cpf: String, accessToken: String, onComplete: () -> Unit, onError: (String) -> Unit) {
+    private fun sincronizarDadosDoServidor(cpf: String, accessToken: String, session:String, onComplete: () -> Unit, onError: (String) -> Unit) {
         // 1. Busca os dados completos (Clientes e Dependentes aninhados)
-        apiClient.buscarDadosCompletos(accessToken, cpf, object : ApiClient.ApiCallback {
+        apiClient.buscarDadosCompletos(accessToken, cpf, session, object : ApiClient.ApiCallback {
             override fun onSuccess(clienteResp: org.json.JSONObject) {
                 try {
                     val respStatus = clienteResp.optString("resp")
@@ -616,7 +712,7 @@ class WebAppInterface(private val activity: ComponentActivity, private val webVi
                         dados.sincronizarDependentesApi(cliCodigo, depArray)
 
                         // 4. Busca as Parcelas Deste Cliente Específico
-                        apiClient.buscarParcelas(accessToken, cliCodigo, object : ApiClient.ApiCallback {
+                        apiClient.buscarParcelas(accessToken, cpf, cliCodigo, session, object : ApiClient.ApiCallback {
                             override fun onSuccess(parcResp: org.json.JSONObject) {
                                 if (ocorreuErro) return
 
@@ -626,21 +722,24 @@ class WebAppInterface(private val activity: ComponentActivity, private val webVi
                                 // === VERIFICAÇÃO DE CONCLUSÃO ===
                                 clientesProcessados++
                                 if (clientesProcessados == totalClientes && !ocorreuErro) {
-                                    // Sincroniza os Conveniados por último, pois são gerais (não dependem do cliente)
-                                    apiClient.buscarConveniados(accessToken, object : ApiClient.ApiCallback {
-                                        override fun onSuccess(convResp: org.json.JSONObject) {
-                                            val convArray = convResp.optJSONArray("dados") ?: org.json.JSONArray()
-                                            dados.sincronizarConveniadosApi(convArray)
-                                            onComplete() // Todos os dados baixados com sucesso!
-                                        }
 
-                                        override fun onError(error: String) {
-                                            // Se der erro nos conveniados, loga, mas deixa o usuário logar mesmo assim
-                                            Log.e("SYNC", "Falha ao sincronizar conveniados: $error")
-                                            onComplete()
-                                        }
-                                    })
                                 }
+
+                                // Sincroniza os Conveniados por último, pois são gerais (não dependem do cliente)
+                                apiClient.buscarConveniados(accessToken, session, cpf, object : ApiClient.ApiCallback {
+                                    override fun onSuccess(convResp: org.json.JSONObject) {
+                                        val convArray = convResp.optJSONArray("dados") ?: org.json.JSONArray()
+                                        dados.sincronizarConveniadosApi(convArray)
+                                        onComplete() // Todos os dados baixados com sucesso!
+                                    }
+
+                                    override fun onError(error: String) {
+                                        // Se der erro nos conveniados, loga, mas deixa o usuário logar mesmo assim
+                                        Log.e("SYNC", "Falha ao sincronizar conveniados: $error")
+                                        onComplete()
+                                    }
+                                })
+
                             }
 
                             override fun onError(error: String) {

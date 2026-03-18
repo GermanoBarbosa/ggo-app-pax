@@ -80,25 +80,51 @@
         </div>
 
         <button class="btn-main" id="btnEntrar" onclick="fazerLogin()">Entrar</button>
+                
+        <button type="button" id="btnBiometric" onclick="chamarBiometria()" style="display: none; width: 100%; padding: 16px; background-color: #f8f8f8; color: #322fd3; border: 2px solid #322fd3; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.2s; margin-top: 15px;">
+            <i class="fa-solid fa-fingerprint"></i> Entrar com Biometria
+        </button>
+
     </div>
 </div>
 
 <script>
     // Executa ao carregar a página
+// Executa ao carregar a página
     window.addEventListener('load', () => {
-        // Verifica se há credenciais salvas no Android
         if (typeof Android !== 'undefined') {
             const cpfSalvo = Android.getSavedCpf();
             const senhaSalva = Android.getSavedPassword();
             
             if (cpfSalvo && senhaSalva) {
+                // Preenche os campos se houver dados salvos
                 document.getElementById('cpf').value = cpfSalvo;
                 document.getElementById('senha').value = senhaSalva;
                 document.getElementById('chkLembrar').checked = true;
                 mascaraCPF(document.getElementById('cpf'));
+
+                // Só exibe o botão de biometria se houver credencial salva E o celular tiver suporte
+                if (Android.isBiometricAvailable()) {
+                    document.getElementById('btnBiometric').style.display = 'block';
+                }
             }
         }
     });
+
+    // Função disparada ao clicar no botão de biometria
+    function chamarBiometria() {
+        if (typeof Android !== 'undefined') {
+            Android.authenticateBiometric();
+        }
+    }
+
+    // Função chamada pelo KOTLIN quando o dedo é reconhecido com sucesso
+    function realizarLoginBiometrico(cpf, senha) {
+        document.getElementById('cpf').value = cpf;
+        document.getElementById('senha').value = senha;
+        mascaraCPF(document.getElementById('cpf'));
+        fazerLogin(); // Reaproveita sua função que já faz a chamada para a API
+    }
 
     function toggleVisibility(id, icon) {
         const el = document.getElementById(id);
