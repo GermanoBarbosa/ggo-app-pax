@@ -412,6 +412,29 @@
                 document.getElementById('destination').textContent = 'exemplo@email.com';
             }
         });
+
+        function preencherCodigoSMS(codigoStr) {
+            console.log("JS: Recebi o código do Android: " + codigoStr); // Isso aparece na aba 'Web Inspector'
+            
+            const inputs = document.querySelectorAll('.code-input');
+            if (inputs.length === 0) {
+                console.error("JS: Não encontrei os campos com a classe .code-input");
+                return;
+            }
+
+            const digitos = codigoStr.split('');
+            inputs.forEach((input, index) => {
+                if (index < digitos.length) {
+                    input.value = digitos[index];
+                }
+            });
+
+            // Forçar o evento de input para que o seu script existente valide os campos
+            inputs[0].dispatchEvent(new Event('input')); 
+            
+            // Se você tiver uma função que verifica se os 6 campos estão cheios, chame-a aqui
+            if (typeof checkIfComplete === "function") checkIfComplete();
+        }        
     </script>
 
 </body>

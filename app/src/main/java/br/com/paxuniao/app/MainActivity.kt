@@ -1,16 +1,21 @@
 package br.com.paxuniao.app
 
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.ViewGroup
 import android.webkit.JavascriptInterface
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import android.widget.Toast
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.biometric.BiometricManager
+import androidx.biometric.BiometricPrompt
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.AlertDialog
@@ -22,29 +27,89 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.AndroidView
-import br.com.paxuniao.app.ApiClient.ApiCallback
-import br.com.paxuniao.app.Parametros.BASE_URL
-import br.com.paxuniao.app.ui.theme.ClientesTheme
-import okhttp3.RequestBody
-import org.json.JSONObject
-import androidx.fragment.app.FragmentActivity
-import androidx.biometric.BiometricManager
-import androidx.biometric.BiometricPrompt
 import androidx.core.content.ContextCompat
-
+import androidx.fragment.app.FragmentActivity
+import br.com.paxuniao.app.ui.theme.ClientesTheme
+import com.google.android.gms.auth.api.phone.SmsRetriever
+import com.google.android.gms.common.api.CommonStatusCodes
+import java.util.regex.Pattern
 
 class MainActivity : FragmentActivity() {
 
     private lateinit var dados: Dados
+    var myWebView: WebView? = null // Variável para acessar a WebView no BroadcastReceiver
+
+    private val smsVerificationReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            // LOG 1: O sistema Android enviou um alerta de que algo chegou
+            Log.d("SMS_DIAGNOSTICO", "Intent recebida: ${intent.action}")
+
+            if (SmsRetriever.SMS_RETRIEVED_ACTION == intent.action) {
+                val extras = intent.extras
+                val status = extras?.get(SmsRetriever.EXTRA_STATUS) as? com.google.android.gms.common.api.Status
+
+                when (status?.statusCode) {
+                    CommonStatusCodes.SUCCESS -> {
+                        // LOG 2: O Google Play Services confirmou que o SMS é para este App (Hash correta)
+                        val message = extras.get(SmsRetriever.EXTRA_SMS_MESSAGE) as String
+                        Log.d("SMS_DIAGNOSTICO", "Google confirmou a Hash! Mensagem: $message")
+
+
+                        val pattern = Pattern.compile("(\\d{6})") // Procura 6 números em qualquer lugar do texto
+                        val matcher = pattern.matcher(message)
+
+                        if (matcher.find()) {
+                            val codigoStr = matcher.group(1)
+                            // LOG 3: Código extraído com sucesso
+                            Log.d("SMS_DIAGNOSTICO", "Código extraído: $codigoStr. Enviando para WebView...")
+
+                            myWebView?.post {
+                                // LOG 4: Tentativa de execução do JS
+                                Log.d("SMS_DIAGNOSTICO", "Executando evaluateJavascript...")
+                                myWebView?.evaluateJavascript("javascript:preencherCodigoSMS('$codigoStr')", null)
+                            }
+                        } else {
+                            Log.e("SMS_DIAGNOSTICO", "ERRO: Não encontrei 6 dígitos na mensagem.")
+                        }
+                    }
+                    CommonStatusCodes.TIMEOUT -> {
+                        // LOG 5: Passaram 5 minutos e nada chegou
+                        Log.e("SMS_DIAGNOSTICO", "TIMEOUT: O tempo de espera esgotou.")
+                    }
+                    else -> {
+                        Log.d("SMS_DIAGNOSTICO", "Outro status: ${status?.statusCode}")
+                    }
+                }
+            }
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // Receiver específico da SMS Retriever API
+
         dados = Dados()
         dados.open(this)
         //dados.inserirDadosExemplo()
-        val versao = dados.getDBVersion()
-        Toast.makeText(this, "DB Version $versao", Toast.LENGTH_SHORT).show()
+        //val versao = dados.getDBVersion()
+        //Toast.makeText(this, "DB Version $versao", Toast.LENGTH_SHORT).show()
+
+        // Use isso apenas uma vez para descobrir a Hash
+        val helper = AppSignatureHelper(this)
+        val signatures = helper.appSignatures
+        for (sig in signatures) {
+            Log.d("SMS_HASH", "Sua Hash de 11 caracteres é: $sig")
+        }
+
+        // Registra o Receiver do SMS Retriever API
+        val intentFilter = IntentFilter(SmsRetriever.SMS_RETRIEVED_ACTION)
+        // Tratamento para Android 13+ (Tiramisu)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(smsVerificationReceiver, intentFilter, Context.RECEIVER_EXPORTED)
+        } else {
+            registerReceiver(smsVerificationReceiver, intentFilter)
+        }
 
         enableEdgeToEdge()
         setContent {
@@ -65,7 +130,14 @@ class MainActivity : FragmentActivity() {
 
 
     }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        unregisterReceiver(smsVerificationReceiver)
+    }
 }
+
+
 
 class WebAppInterface(private val activity: FragmentActivity, private val webView: WebView, private val dados: Dados) {
 
@@ -82,6 +154,74 @@ class WebAppInterface(private val activity: FragmentActivity, private val webVie
 
     var resposta =""
     var code_valid = true
+
+    @JavascriptInterface
+    fun enviarCodigoRecuperacao(cpfLimpo: String, tipo: String, index: Int) {
+        Log.i("enviarCodigoRecuperacao", "$cpfLimpo ; $tipo ; $index")
+
+        lastCpfSolicitado = cpfLimpo
+        lastTipoSolicitado = tipo
+        lastIndexSolicitado = index
+
+        if (lastToken.isEmpty()) {
+            showToast("Token inválido. Busque o CPF novamente.")
+            return
+        }
+
+        if (tipo == "email") {
+            val emailObj = currentEmails.optJSONObject(index)
+            if (emailObj != null) {
+                val email = emailObj.getString("cli_email")
+                val cliCodigo = emailObj.getString("cli_codigo")
+
+                apiClient.recuperarEmail(cpfLimpo, lastToken, email, cliCodigo, object : ApiClient.ApiCallback {
+                    override fun onSuccess(response: org.json.JSONObject) {
+                        val respStatus = response.optString("resp")
+                        if (respStatus == "er") {
+                            val msgErro = response.optString("msg", "Erro ao enviar e-mail.")
+                            showToast(msgErro)
+                        } else {
+                            showToast("E-mail de recuperação enviado!")
+                        }
+                    }
+                    override fun onError(error: String) {
+                        showToast("Erro de conexão: $error")
+                    }
+                })
+            }
+        } else if (tipo == "sms") {
+
+            // 1. INICIA A ESCUTA DO GOOGLE PLAY SERVICES
+            val client = SmsRetriever.getClient(activity)
+            client.startSmsRetriever().addOnSuccessListener {
+                Log.i("SMS_DIAGNOSTICO", "Aguardando SMS com a Hash do App...")
+            }.addOnFailureListener {
+                Log.e("SMS_DIAGNOSTICO", "Falha ao iniciar o SMS Retriever")
+            }
+
+            // 2. Continua com a chamada da sua API
+            val foneObj = currentFones.optJSONObject(index)
+            if (foneObj != null) {
+                val numeroCompleto = foneObj.getString("ddd") + foneObj.getString("fone")
+                val seq = foneObj.getInt("seq")
+
+                apiClient.recuperarFone(cpfLimpo, lastToken, numeroCompleto, seq.toString(), object : ApiClient.ApiCallback {
+                    override fun onSuccess(response: org.json.JSONObject) {
+                        val respStatus = response.optString("resp")
+                        if (respStatus == "er") {
+                            val msgErro = response.optString("msg", "Erro ao enviar SMS.")
+                            showToast(msgErro)
+                        } else {
+                            showToast("SMS de recuperação enviado!")
+                        }
+                    }
+                    override fun onError(error: String) {
+                        showToast("Erro de conexão: $error")
+                    }
+                })
+            }
+        }
+    }
 
     @JavascriptInterface
     fun buscarDadosPorCPF(cpf: String) {
@@ -185,7 +325,7 @@ class WebAppInterface(private val activity: FragmentActivity, private val webVie
     }
 
     @JavascriptInterface
-    fun enviarCodigoRecuperacao(cpfLimpo: String, tipo: String, index: Int) {
+    fun enviarCodigoRecuperacao2(cpfLimpo: String, tipo: String, index: Int) {
         Log.i("enviarCodigoRecuperacao", "$cpfLimpo ; $tipo ; $index")
 
         // 1. SALVANDO PARA UM POSSÍVEL REENVIO
@@ -763,6 +903,8 @@ class WebAppInterface(private val activity: FragmentActivity, private val webVie
     }
 }
 
+
+
 @Composable
 fun WebViewScreen(url: String, modifier: Modifier = Modifier, activity: MainActivity, dados: Dados) {
     // 1. Criamos uma referência para a WebView que persiste durante recomposições
@@ -806,7 +948,7 @@ fun WebViewScreen(url: String, modifier: Modifier = Modifier, activity: MainActi
         factory = { context ->
             WebView(context).apply {
                 webViewRef = this
-
+                activity.myWebView = this
                 layoutParams = ViewGroup.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT,
                     ViewGroup.LayoutParams.MATCH_PARENT
