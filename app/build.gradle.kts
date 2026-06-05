@@ -16,8 +16,8 @@ android {
         applicationId = "br.com.paxuniao.app"
         minSdk = 24
         targetSdk = 36
-        versionCode = 5
-        versionName = "26.3.$versionCode"
+        versionCode = 6
+        versionName = "26.6.$versionCode"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 

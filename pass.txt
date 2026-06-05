@@ -1,0 +1,11 @@
+G:\dev-main-android\ggo-app-pax
+G:\dev-main-android\ggo-app-pax\chave2.jks
+G:\dev-main-android\ggo-app-pax\app
+
+42mv8ak2Sz^BH8MW
+
+xF#S0vs1n7$hhsJQ
+
+
+C:\Users\Suporte\AppData\Local\Android\Sdk
+keytool -list -v -keystore caminho/para/seu/arquivo.jks
