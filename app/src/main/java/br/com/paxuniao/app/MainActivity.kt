@@ -37,6 +37,7 @@ import java.util.regex.Pattern
 class MainActivity : FragmentActivity() {
 
     private lateinit var dados: Dados
+    var last_sig = ""
     var myWebView: WebView? = null // Variável para acessar a WebView no BroadcastReceiver
 
     private val smsVerificationReceiver = object : BroadcastReceiver() {
@@ -99,7 +100,8 @@ class MainActivity : FragmentActivity() {
         val helper = AppSignatureHelper(this)
         val signatures = helper.appSignatures
         for (sig in signatures) {
-            Log.d("SMS_HASH", "Sua Hash de 11 caracteres é: $sig")
+            //Log.d("SMS_HASH", "Sua Hash de 11 caracteres é: $sig")
+            last_sig = sig
         }
 
         // Registra o Receiver do SMS Retriever API
@@ -122,7 +124,8 @@ class MainActivity : FragmentActivity() {
 
                         activity = this@MainActivity, // Passa a referência da activity
                         modifier = Modifier.padding(innerPadding),
-                        dados = dados
+                        dados = dados,
+                        last_sig = last_sig
                     )
                 }
             }
@@ -139,7 +142,12 @@ class MainActivity : FragmentActivity() {
 
 
 
-class WebAppInterface(private val activity: FragmentActivity, private val webView: WebView, private val dados: Dados) {
+class WebAppInterface(
+    private val activity: FragmentActivity,
+    private val webView: WebView,
+    private val dados: Dados,
+    private val last_sig: String
+) {
 
     // Instância do cliente de API e variáveis para guardar o estado atual da recuperação
     private val apiClient = ApiClient()
@@ -205,7 +213,7 @@ class WebAppInterface(private val activity: FragmentActivity, private val webVie
                 val numeroCompleto = foneObj.getString("ddd") + foneObj.getString("fone")
                 val seq = foneObj.getInt("seq")
 
-                apiClient.recuperarFone(cpfLimpo, lastToken, numeroCompleto, seq.toString(), object : ApiClient.ApiCallback {
+                apiClient.recuperarFone(cpfLimpo, lastToken, numeroCompleto, seq.toString(), last_sig, object : ApiClient.ApiCallback {
                     override fun onSuccess(response: org.json.JSONObject) {
                         val respStatus = response.optString("resp")
                         if (respStatus == "er") {
@@ -365,7 +373,7 @@ class WebAppInterface(private val activity: FragmentActivity, private val webVie
                 val numeroCompleto = foneObj.getString("ddd") + foneObj.getString("fone")
                 val seq = foneObj.getInt("seq")
 
-                apiClient.recuperarFone(cpfLimpo, lastToken, numeroCompleto, seq.toString(), object : ApiClient.ApiCallback {
+                apiClient.recuperarFone(cpfLimpo, lastToken, numeroCompleto, seq.toString(), last_sig, object : ApiClient.ApiCallback {
                     override fun onSuccess(response: org.json.JSONObject) {
                         val respStatus = response.optString("resp")
                         if (respStatus == "er") {
@@ -906,7 +914,7 @@ class WebAppInterface(private val activity: FragmentActivity, private val webVie
 
 
 @Composable
-fun WebViewScreen(url: String, modifier: Modifier = Modifier, activity: MainActivity, dados: Dados) {
+fun WebViewScreen(url: String, modifier: Modifier = Modifier, activity: MainActivity, dados: Dados, last_sig: String) {
     // 1. Criamos uma referência para a WebView que persiste durante recomposições
     // 1. IMPORTANTE: Use 'remember' para que a referência persista entre recomposições
     var webViewRef: WebView? by remember { mutableStateOf(null) }
@@ -918,7 +926,7 @@ fun WebViewScreen(url: String, modifier: Modifier = Modifier, activity: MainActi
         AlertDialog(
             onDismissRequest = { mostrarDialogo = false },
             title = { androidx.compose.material3.Text("Sair do App") },
-            text = { androidx.compose.material3.Text("Deseja realmente fechar o aplicativo da PAX União?") },
+            text = { androidx.compose.material3.Text("Deseja realmente fechar o aplicativo?") },
             confirmButton = {
                 androidx.compose.material3.TextButton(onClick = { activity.finish() }) {
                     androidx.compose.material3.Text("Sim")
@@ -963,7 +971,7 @@ fun WebViewScreen(url: String, modifier: Modifier = Modifier, activity: MainActi
                     allowContentAccess = true
                 }
                 // "Android" será o nome do objeto dentro do JavaScript
-                addJavascriptInterface(WebAppInterface(activity,this, dados), "Android")
+                addJavascriptInterface(WebAppInterface(activity,this, dados, last_sig), "Android")
 
                 loadUrl(url)
 

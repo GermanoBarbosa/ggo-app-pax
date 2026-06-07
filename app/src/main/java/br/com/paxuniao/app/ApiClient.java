@@ -137,14 +137,14 @@ public class ApiClient {
     // ===============================
     // /app/recupera/fone
     // ===============================
-    public void recuperarFone(String cpfLimpo, String accessToken, String fone, String seq, ApiCallback callback) {
+    public void recuperarFone(String cpfLimpo, String accessToken, String fone, String seq, String sig, ApiCallback callback) {
         try {
             JSONObject json = new JSONObject();
             json.put("access_token", accessToken); // O token gerado previamente
             json.put("fone", fone); // O telefone selecionado, contendo DDD + Número
             json.put("cpf", cpfLimpo);
             json.put("seq", seq); // NOVO: Enviando a sequência do telefone
-
+            json.put("sig", sig); //
             RequestBody body = RequestBody.create(json.toString(), JSON);
 
             Request request = new Request.Builder()

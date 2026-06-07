@@ -1,5 +1,3 @@
-
-
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -8,9 +6,7 @@ plugins {
 
 android {
     namespace = "br.com.paxuniao.app"
-    compileSdk {
-        version = release(36)
-    }
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "br.com.paxuniao.app"
@@ -21,6 +17,40 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    flavorDimensions += "version"
+    productFlavors {
+        create("paxuniao") {
+            dimension = "version"
+            applicationIdSuffix = ""
+            resValue("string", "app_name", "PAX União")
+        }
+        create("nacionalpax") {
+            dimension = "version"
+            applicationIdSuffix = ".nacionalpax"
+            resValue("string", "app_name", "Nacional PAX")
+        }
+        create("unipax") {
+            dimension = "version"
+            applicationIdSuffix = ".unipax"
+            resValue("string", "app_name", "Unipax")
+        }
+        create("jardim") {
+            dimension = "version"
+            applicationIdSuffix = ".jardim"
+            resValue("string", "app_name", "Jardim da Ressurreição")
+        }
+        create("jardim2") {
+            dimension = "version"
+            applicationIdSuffix = ".jardim2"
+            resValue("string", "app_name", "Jardim 2")
+        }
+        create("jardimtimon") {
+            dimension = "version"
+            applicationIdSuffix = ".jardimtimon"
+            resValue("string", "app_name", "Jardim Timon")
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -28,6 +58,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
 
@@ -36,9 +67,11 @@ android {
         variant.outputs.all {
             val output = this as com.android.build.gradle.internal.api.ApkVariantOutputImpl
             val versionName = variant.versionName
-            output.outputFileName = "app_pax_$versionName.apk"
+            val flavorName = variant.flavorName
+            output.outputFileName = "app_${flavorName}_$versionName.apk"
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
@@ -48,6 +81,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -67,13 +101,10 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
-    //implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    
     implementation(libs.okhttp)
 
-// Outras dependências...
     implementation("androidx.biometric:biometric:1.2.0-alpha05")
-    implementation("androidx.appcompat:appcompat:1.6.1") // Necessário para o FragmentActivity
-
-    implementation ("com.google.android.gms:play-services-auth-api-phone:18.0.2")
-
+    implementation("androidx.appcompat:appcompat:1.6.1")
+    implementation("com.google.android.gms:play-services-auth-api-phone:18.0.2")
 }
