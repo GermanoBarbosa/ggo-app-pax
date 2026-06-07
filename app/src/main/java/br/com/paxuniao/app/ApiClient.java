@@ -70,6 +70,7 @@ public class ApiClient {
             JSONObject json = new JSONObject();
             json.put("access_token", accessToken);
             json.put("cpf", cpf);
+            json.put("flavor", BuildConfig.FLAVOR);
 
             RequestBody body = RequestBody.create(json.toString(), JSON);
 
@@ -93,6 +94,7 @@ public class ApiClient {
             json.put("access_token", accessToken);
             json.put("cpf", cpf);
             json.put("code", code);
+            json.put("flavor", BuildConfig.FLAVOR);
 
             RequestBody body = RequestBody.create(json.toString(), JSON);
 
@@ -119,6 +121,7 @@ public class ApiClient {
             json.put("email", email); // O e-mail selecionado pelo usuário
             json.put("cpf", cpfLimpo);
             json.put("cli_codigo", cliCodigo); // NOVO: Enviando o código do cliente
+            json.put("flavor", BuildConfig.FLAVOR);
 
             RequestBody body = RequestBody.create(json.toString(), JSON);
 
@@ -144,7 +147,9 @@ public class ApiClient {
             json.put("fone", fone); // O telefone selecionado, contendo DDD + Número
             json.put("cpf", cpfLimpo);
             json.put("seq", seq); // NOVO: Enviando a sequência do telefone
-            json.put("sig", sig); //
+            json.put("sig", sig); 
+            json.put("flavor", BuildConfig.FLAVOR);
+
             RequestBody body = RequestBody.create(json.toString(), JSON);
 
             Request request = new Request.Builder()
@@ -169,6 +174,7 @@ public class ApiClient {
             json.put("cpf", cpf);
             json.put("code", code);
             json.put("pass", novaSenha); // ATENÇÃO: Altere "senha" para o nome do campo que sua API backend espera
+            json.put("flavor", BuildConfig.FLAVOR);
 
             RequestBody body = RequestBody.create(json.toString(), JSON);
 
@@ -228,6 +234,7 @@ public class ApiClient {
             json.put("access_token", accessToken);
             json.put("cpf", cpf);
             json.put("pass", senha); // Ou "password", dependendo de como está na sua API VB6
+            json.put("flavor", BuildConfig.FLAVOR);
 
             RequestBody body = RequestBody.create(json.toString(), JSON);
 
@@ -253,6 +260,7 @@ public class ApiClient {
             json.put("access_token", accessToken);
             json.put("cpf", cpf);
             json.put("session", sessionToken);
+            json.put("flavor", BuildConfig.FLAVOR);
 
             RequestBody body = RequestBody.create(json.toString(), JSON);
 
@@ -276,6 +284,7 @@ public class ApiClient {
             JSONObject json = new JSONObject();
             json.put("access_token", accessToken);
             json.put("cli_codigo", cliCodigo);
+            json.put("flavor", BuildConfig.FLAVOR);
 
             RequestBody body = RequestBody.create(json.toString(), JSON);
 
@@ -301,6 +310,7 @@ public class ApiClient {
             json.put("cli_codigo", cliCodigo);
             json.put("session", session);
             json.put("cpf", cpf);
+            json.put("flavor", BuildConfig.FLAVOR);
 
 
             RequestBody body = RequestBody.create(json.toString(), JSON);
@@ -326,6 +336,7 @@ public class ApiClient {
             json.put("access_token", accessToken);
             json.put("session", session);
             json.put("cpf", cpf);
+            json.put("flavor", BuildConfig.FLAVOR);
 
             RequestBody body = RequestBody.create(json.toString(), JSON);
 
@@ -350,6 +361,7 @@ public class ApiClient {
             json.put("access_token", accessToken);
             json.put("cpf", cpf);
             json.put("session", session);
+            json.put("flavor", BuildConfig.FLAVOR);
 
             RequestBody body = RequestBody.create(json.toString(), JSON);
 
