@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalhes da Parcela</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="./comum.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+        body { background-color: #fdfaf5; display: flex; justify-content: center; }
+        .app-container { width: 100%; max-width: 412px; background-color: white; min-height: 100vh; display: flex; flex-direction: column; }
+
+        .header { display: flex; align-items: center; padding: 20px; background-color: white; }
+        .header i { font-size: 20px; color: #333; cursor: pointer; }
+        .header h1 { font-size: 22px; font-weight: 500; margin-left: 30px; color: #333; }
+
+        .content { padding: 15px; }
+        .info-card { background-color: #f8f8f8; border-radius: 15px; padding: 20px; margin-bottom: 20px; }
+        .info-row { display: flex; align-items: center; margin-bottom: 20px; }
+        .info-row:last-child { margin-bottom: 0; }
+
+        .icon-container { width: 40px; display: flex; justify-content: center; font-size: 22px; color: #555; margin-right: 15px; }
+        .text-container { display: flex; flex-direction: column; }
+        
+        /* Cor Azul aplicada ao Label */
+        .label { font-size: 14px; color: #1a237e; margin-bottom: 2px; }
+        .value { font-size: 16px; color: #333; font-weight: 500; }
+
+        .status-blue { background-color: #1976d2; color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+        
+        .boleto-card { background-color: #f8f8f8; border-radius: 15px; padding: 20px; }
+        .boleto-header { display: flex; align-items: center; margin-bottom: 15px; color: #1a237e; font-weight: 500; }
+        .boleto-header i { margin-right: 15px; font-size: 20px; color: #333;}
+
+        .barcode-box { background-color: #e0e0e0; border-radius: 10px; padding: 20px; text-align: center; word-break: break-all; font-family: monospace; font-size: 18px; letter-spacing: 1px; color: #333; line-height: 1.4; }
+
+        .copy-button { display: flex; align-items: center; justify-content: center; margin-top: 20px; color: #1a237e; font-weight: bold; cursor: pointer; gap: 10px; }
+        .copy-button:active { transform: scale(0.95); }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <div class="header">
+        <i class="fa-solid fa-arrow-left" onclick="window.history.back()"></i>
+        <h1>Parcela 26</h1>
+    </div>
+
+    <div class="content">
+        <div class="info-card">
+            <div class="info-row">
+                <div class="icon-container"><i class="fa-solid fa-circle-dollar-to-slot"></i></div>
+                <div class="text-container">
+                    <span class="label">Valor</span>
+                    <span class="value">R$ 60,00</span>
+                </div>
+            </div>
+            <div class="info-row">
+                <div class="icon-container"><i class="fa-regular fa-calendar"></i></div>
+                <div class="text-container">
+                    <span class="label">Vencimento</span>
+                    <span class="value">28/05/2026</span>
+                </div>
+            </div>
+            <div class="info-row">
+                <div class="icon-container">
+                    <div class="status-blue"><i class="fa-solid fa-hourglass-half"></i></div>
+                </div>
+                <div class="text-container">
+                    <span class="label">Situação</span>
+                    <span class="value">Em Aberto</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="boleto-card">
+            <div class="boleto-header">
+                <i class="fa-solid fa-barcode"></i>
+                <span>Pagar via Boleto</span>
+            </div>
+            <div class="barcode-box" id="barcode">
+                75693146000000060001332501094738562150681001
+            </div>
+            <div class="copy-button" onclick="copyText()">
+                <i class="fa-regular fa-copy"></i>
+                <span>Copiar</span>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    function copyText() {
+        const text = document.getElementById('barcode').innerText;
+        navigator.clipboard.writeText(text).then(() => { alert('Código de barras copiado!'); });
+    }
+</script>
+</body>
+</html>
