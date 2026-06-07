@@ -4,8 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nova Senha - PAX União</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">    
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, sans-serif; }
         body { background-color: #fdfaf5; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
@@ -21,13 +20,13 @@
 
         .header { background-color: #fff6e9; padding: 30px 20px; text-align: center; }
         .logo-placeholder { width: 200px; height: 60px; background: url('logo.png') no-repeat center; background-size: contain; margin: 0 auto; }
-        .title { color: #2f3ad3; font-size: 22px; font-weight: bold; margin-top: 15px; }
+        .title { color: var(--primary); font-size: 22px; font-weight: bold; margin-top: 15px; }
 
         .form-container { padding: 25px; flex: 1; }
         .instruction-text { font-size: 14px; color: #666; margin-bottom: 25px; text-align: center; }
 
         .input-group { position: relative; margin-bottom: 10px; }
-        .input-group i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #322fd3; }
+        .input-group i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--primary); }
         .input-group .toggle-pass { left: auto; right: 15px; cursor: pointer; color: #aaa; }
 
         input {
@@ -41,7 +40,7 @@
             transition: 0.2s;
         }
 
-        input:focus { border-color: #322fd3; background-color: #fff; }
+        input:focus { border-color: var(--primary); background-color: #fff; }
 
         /* Força da Senha */
         .strength-meter { height: 4px; background-color: #eee; margin-top: 5px; border-radius: 2px; overflow: hidden; }
@@ -52,8 +51,7 @@
 
         .btn-main {
             width: 100%;
-            padding: 16px;
-            background-color: #322fd3;
+            padding: 16px;           
             color: white;
             border: none;
             border-radius: 10px;
@@ -75,13 +73,13 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            color: #322fd3;
+            color: var(--primary);
         }
 
         .spinner {
             width: 40px; height: 40px;
             border: 4px solid #f3f3f3;
-            border-top: 4px solid #322fd3;
+            border-top: 4px solid var(--primary);
             border-radius: 50%;
             animation: spin 1s linear infinite;
             margin-bottom: 10px;
@@ -89,6 +87,7 @@
 
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 

@@ -63,6 +63,7 @@ public class ApiClient {
 
     // ===============================
     // /app/recupera
+
     // ===============================
     public void recuperar(String accessToken, String cpf, ApiCallback callback) {
 

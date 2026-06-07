@@ -1,0 +1,70 @@
+:root {
+    --primary: #4CAF50;
+    --primary-dark: #388E3C;
+    --primary-light: #C8E6C9;
+    --accent: #FF9800;
+    --background: #F5F5F5;
+    --surface: #FFFFFF;
+    --text-primary: #212121;
+    --text-secondary: #757575;
+    --border: #E0E0E0;
+    --error: #D32F2F;
+    --success: #388E3C;
+    --button-bg: var(--primary);
+    --button-text: #FFFFFF;
+    --button-radius: 8px;
+    --button-padding: 12px 24px;
+    --font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+    --font-size-base: 16px;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: var(--font-family);
+    font-size: var(--font-size-base);
+    background-color: var(--background);
+    color: var(--text-primary);
+    line-height: 1.5;
+}
+
+button, .btn {
+    background-color: var(--button-bg);
+    color: var(--button-text);
+    border: none;
+    border-radius: var(--button-radius);
+    padding: var(--button-padding);
+    font-size: var(--font-size-base);
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+button:hover, .btn:hover {
+    opacity: 0.9;
+}
+
+button:disabled, .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+input, select, textarea {
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 10px 12px;
+    font-size: var(--font-size-base);
+    width: 100%;
+}
+
+a {
+    color: var(--primary);
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}

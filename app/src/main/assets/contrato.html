@@ -5,8 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Meu Contrato - PAX União</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">    
     <style>
         /* CSS Unificado e Limpo */
         * {
@@ -71,8 +70,7 @@
             cursor: pointer;
         }
 
-        .tab-item.active {
-            color: #1a237e;
+        .tab-item.active {            
             font-weight: bold;
         }
 
@@ -83,9 +81,9 @@
             left: 20%;
             width: 60%;
             height: 3px;
-            background-color: #1a237e;
+        
             border-radius: 3px 3px 0 0;
-        }
+        }        
 
         .tab-content {
             flex: 1;
@@ -123,10 +121,9 @@
         }
 
         .info-item i {
-            width: 30px;
-            color: #1a237e;
+            width: 30px;         
             font-size: 18px;
-        }
+        }      
 
         .info-text {
             display: flex;
@@ -186,8 +183,7 @@
         }
 
         .icon-container i {
-            font-size: 24px;
-            color: #1a237e;
+            font-size: 24px;            
         }
 
         .info-container {
@@ -423,14 +419,10 @@
             transition: 0.2s;
         }
 
-        .nav-item.active .nav-icon-container {
-            background-color: #1a237e;
-            color: white;
-        }
-
         .nav-item i { font-size: 18px; }
 
     </style>
+    <link rel="stylesheet" href="styles.css">
 </head>
 
 <body>
@@ -442,7 +434,7 @@
 
         <div class="tabs">
             <div class="tab-item active" id="tab_dados" onclick="switchTab(event, 'dados')">Contrato</div>
-            <div class="tab-item" onclick="switchTab(event, 'dependentes')">Dependentes</div>
+            <div class="tab-item tab-dependentes" onclick="switchTab(event, 'dependentes')">Dependentes</div>
             <div class="tab-item" id="tab_fin" onclick="switchTab(event, 'financeiro')">Financeiro</div>
             <div class="tab-item" onclick="switchTab(event, 'outros')">Outros</div>
         </div>
