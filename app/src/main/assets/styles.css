@@ -11,7 +11,7 @@
 
     --plano-visibility: hidden;
     /* Variável para controlar a visibilidade do plano */
-    --plano-visibility: visible;
+    --plano-visibility: none;
     /* Exemplo para mostrar o plano */
 
     --dep-visibility: none;
@@ -146,7 +146,7 @@ h2 {
 }
 
 .card-plano {
-    visibility: var(--plano-visibility);
+    display: var(--plano-visibility);
 }
 
 .icon-container i {

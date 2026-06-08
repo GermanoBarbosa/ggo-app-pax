@@ -5,13 +5,13 @@
     *--primary: #322fd3;
     *--primary-dark: #1a237e;
 
-    --logo-text: "PAX UNIÃO";
-    --company-name: "Pax União Serviços Postumos LTDA";
-    --cnpj: "07.079.502/0001-07";
+    --logo-text: "Jardim da Ressurreição";
+    --company-name: "Jardim da Ressurreição";
+    --cnpj: "10.551.559/0001-63";
 
     --plano-visibility: hidden;
     /* Variável para controlar a visibilidade do plano */
-    --plano-visibility: visible;
+    /* --plano-visibility: visible; */
     /* Exemplo para mostrar o plano */
 
     --dep-visibility: none;
@@ -112,6 +112,8 @@ h2 {
     text-align: center;
     margin-bottom: 24px;
     color: var(--primary);
+    margin-left: 30px;
+    margin-right: 30px;
 }
 
 .pax-card {

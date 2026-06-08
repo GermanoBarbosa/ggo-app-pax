@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -41,12 +42,12 @@ android {
         }
         create("jardim2") {
             dimension = "version"
-            applicationIdSuffix = ".jardim2"
+            applicationIdSuffix = ".jardim.ii"
             resValue("string", "app_name", "Jardim 2")
         }
         create("jardimtimon") {
             dimension = "version"
-            applicationIdSuffix = ".jardimtimon"
+            applicationIdSuffix = ".jardim.timon"
             resValue("string", "app_name", "Jardim Timon")
         }
     }
@@ -104,7 +105,10 @@ dependencies {
     
     implementation(libs.okhttp)
 
-    implementation("androidx.biometric:biometric:1.2.0-alpha05")
+    implementation(libs.androidx.biometric)
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("com.google.android.gms:play-services-auth-api-phone:18.0.2")
+
+    implementation(platform("com.google.firebase:firebase-bom:34.14.0"))
+    implementation("com.google.firebase:firebase-analytics")
 }

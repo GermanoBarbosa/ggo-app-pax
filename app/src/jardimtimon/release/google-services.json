@@ -1,0 +1,124 @@
+{
+  "project_info": {
+    "project_number": "223374162912",
+    "project_id": "erros-app-pax",
+    "storage_bucket": "erros-app-pax.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:223374162912:android:95148da9b15c83a6e9c985",
+        "android_client_info": {
+          "package_name": "br.com.paxuniao.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDeW5zWFFRN08ZG-2RQLQDAZmWA1zbQurQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:223374162912:android:8663a6335a8dd86de9c985",
+        "android_client_info": {
+          "package_name": "br.com.paxuniao.app.jardim"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDeW5zWFFRN08ZG-2RQLQDAZmWA1zbQurQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:223374162912:android:ed11d891721af3cfe9c985",
+        "android_client_info": {
+          "package_name": "br.com.paxuniao.app.jardim.ii"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDeW5zWFFRN08ZG-2RQLQDAZmWA1zbQurQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:223374162912:android:454df0070ed41937e9c985",
+        "android_client_info": {
+          "package_name": "br.com.paxuniao.app.jardim.timon"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDeW5zWFFRN08ZG-2RQLQDAZmWA1zbQurQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:223374162912:android:bedccafcb326834de9c985",
+        "android_client_info": {
+          "package_name": "br.com.paxuniao.app.nacionalpax"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDeW5zWFFRN08ZG-2RQLQDAZmWA1zbQurQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:223374162912:android:a1a55d611d5da497e9c985",
+        "android_client_info": {
+          "package_name": "br.com.paxuniao.app.unipax"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDeW5zWFFRN08ZG-2RQLQDAZmWA1zbQurQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
