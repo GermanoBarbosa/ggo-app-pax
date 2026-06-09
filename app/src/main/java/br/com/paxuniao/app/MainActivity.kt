@@ -524,15 +524,12 @@ class WebAppInterface(
      * Método chamado pelo Javascript quando o usuário clica em um contrato.
      */
     @JavascriptInterface
-    fun SelecionarContrato(codigoContrato: String, clienteAtivo: String) {
-        // Exemplo de como você pode salvar isso internamente no banco ou Preferences
+    fun SelecionarContrato(codigoContrato: String, clienteAtivo: String, adesao: String, cpf: String) {
         dados.putString("CONTRATO_ATIVO", codigoContrato)
         dados.putString("CLIENTE_ATIVO", clienteAtivo)
-        Log.i("Contrato selecionado " + codigoContrato, codigoContrato)
-        // Navega para a home. Como altera a UI, precisa rodar na thread principal
-      //  webView.post {
-      //      webView.loadUrl("file:///android_asset/contrato.html")
-      //  }
+        dados.putString("ADESAO_ATIVA", adesao)
+        dados.putString("CPF_ATIVO", cpf)
+        Log.i("Contrato selecionado", codigoContrato)
     }
 
     //home.html
@@ -1000,4 +997,3 @@ fun WebViewScreen(url: String, modifier: Modifier = Modifier, activity: MainActi
         }
     )
 }
-

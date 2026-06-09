@@ -255,6 +255,7 @@ public class ApiClient {
     // ===============================
     // /app/cliente/dados (Busca TB_CLI)
     // ===============================
+    /*
     public void buscarDadosCliente(String accessToken, String cpf, String sessionToken, ApiCallback callback) {
         try {
             JSONObject json = new JSONObject();
@@ -276,7 +277,7 @@ public class ApiClient {
             callback.onError(e.getMessage());
         }
     }
-
+*/
     // ===============================
     // /app/cliente/dependentes (Busca TB_DEPENDENTES)
     // ===============================

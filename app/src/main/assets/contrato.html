@@ -556,27 +556,17 @@
             "0055-A1": [
                 { nome: "João Silva Araujo", grau: "Esposo(a)", idade: "45 anos", status: "ATIVO" },
                 { nome: "Maria Silva Araujo", grau: "Filho(a)", idade: "15 anos", status: "ATIVO" }
-            ],
-            "0088-B2": [
-                { nome: "Carlos Mendes", grau: "Irmão(a)", idade: "30 anos", status: "INATIVO" },
-                { nome: "Ana Paula Mendes", grau: "Mãe", idade: "62 anos", status: "ATIVO" }
             ]
         };
 
         const mockFinanceiro = {
             "0055-A1": [
                 { id: 26, vencimento: '28/05/2026', valor: '60,00', status: 'aberto', mes: 'MAIO', ano: 2026 },
-                { id: 25, vencimento: '28/04/2026', valor: '60,00', status: 'aberto', mes: 'ABRIL', ano: 2026 },
-                { id: 24, vencimento: '28/03/2026', valor: '60,00', status: 'vencido', mes: 'MARÇO', ano: 2026 },
                 { id: 23, vencimento: '28/02/2026', valor: '60,00', status: 'pago', pgto: '20/02/2026', mes: 'FEVEREIRO', ano: 2026 }
-            ],
-            "0088-B2": [
-                { id: 12, vencimento: '10/05/2026', valor: '45,00', status: 'aberto', mes: 'MAIO', ano: 2026 },
-                { id: 11, vencimento: '10/04/2026', valor: '45,00', status: 'pago', pgto: '05/04/2026', mes: 'ABRIL', ano: 2026 }
             ]
         };
 
-        let parcelasAtuais = []; // Guarda as parcelas do contrato ativo
+        let parcelasAtuais = []; 
         let todosContratos = [];
 
         // ==========================================
@@ -593,50 +583,47 @@
             carregarDadosDoAndroid();
         });
 
-        // Navegação pelo Bottom Nav (Mock)
+        function formatarCPF(cpf) {
+            if (!cpf) return "-";
+            const limpo = cpf.replace(/\D/g, "");
+            if (limpo.length !== 11) return cpf;
+            return limpo.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
+        }
+
         function chamarAndroid(metodo) {
             if (typeof Android !== 'undefined' && Android[metodo]) {
                 Android[metodo]();
             } else {
-                console.log("Mock Android: Navegando para " + metodo);
+                console.log("Mock Android: " + metodo);
             }
         }
-
-        // ==========================================
-        // GESTÃO DE DADOS DO CONTRATO
-        // ==========================================
-        // ==========================================
-        // GESTÃO DE DADOS DO CONTRATO
-        // ==========================================
-        
-        // NOVO: Variável global para guardar a lista e permitir atualização visual
-       
 
         function carregarDadosDoAndroid() {
             try {
                 if (typeof Android === 'undefined') {
-                    // Mock: Simulando o 0088-B2 como selecionado (-1)
                     todosContratos = [
-                        { "CLI_CODIGO": "0055-A1", "CLI_NOME": "Ivoneide S. Nava Araujo", "CLI_SITUACAO": "ATIVO", "CLI_SELECIONADO": 0 },
-                        { "CLI_CODIGO": "0088-B2", "CLI_NOME": "Ivoneide S. Nava Araujo", "CLI_SITUACAO": "INATIVO", "CLI_SELECIONADO": -1 }
+                        { "CLI_CODIGO": "0055-A1", "CLI_NOME": "RAFAEL (TESTE)", "CLI_SITUACAO": "ATIVO", "CLI_DATAPLANO": "20/03/2015", "CLI_CPF": "64293840397", "CLI_SELECIONADO": -1 }
                     ];
                 } else if (Android.getListaContratos) {
                     const dadosString = Android.getListaContratos();
                     if(dadosString) todosContratos = JSON.parse(dadosString);
                 }
 
-                // Renderiza a lista na aba "Outros"
                 renderizarListaContratos(todosContratos);
 
                 if (todosContratos && todosContratos.length > 0) {
-                    // Busca o contrato onde CLI_SELECIONADO é -1. Se não achar, pega o primeiro.
                     let contratoSelecionado = todosContratos.find(c => c.CLI_SELECIONADO == -1);
                     if (!contratoSelecionado) contratoSelecionado = todosContratos[0];
                     
-                    aplicarContratoAtivo(contratoSelecionado.CLI_CODIGO, contratoSelecionado.CLI_NOME);
+                    aplicarContratoAtivo(
+                        contratoSelecionado.CLI_CODIGO, 
+                        contratoSelecionado.CLI_NOME,
+                        contratoSelecionado.CLI_DATAPLANO,
+                        contratoSelecionado.CLI_CPF
+                    );
                 }
             } catch (e) {
-                console.error("Erro ao carregar dados do Android", e);
+                console.error("Erro ao carregar dados", e);
             }
         }
 
@@ -655,13 +642,11 @@
             lista.forEach(contrato => {
                 const statusClass = (contrato.CLI_SITUACAO.toUpperCase() === 'ATIVO') ? 'status-ativo' : 'status-inativo';
                 const isSelecionado = (contrato.CLI_SELECIONADO == -1);
-                
-                // Aplica um CSS diferente e uma tag visual se for o contrato atual
                 const cardClass = isSelecionado ? 'contract-card selected-card' : 'contract-card';
                 const badgeAtual = isSelecionado ? '<span style="font-size: 10px; background: #1a237e; color: white; padding: 2px 6px; border-radius: 8px;">Atual</span>' : '';
 
                 const cardHTML = `
-                <div class="${cardClass}" onclick="selecionarContrato('${contrato.CLI_CODIGO}','${contrato.CLI_NOME}')">
+                <div class="${cardClass}" onclick="selecionarContrato('${contrato.CLI_CODIGO}','${contrato.CLI_NOME}', '${contrato.CLI_DATAPLANO}', '${contrato.CLI_CPF}')">
                     <div class="icon-container"><i class="fa-solid fa-file-signature"></i></div>
                     <div class="info-container">
                         <span class="cli-nome">${contrato.CLI_NOME} ${badgeAtual}</span>
@@ -675,46 +660,32 @@
         }
 
         function aplicarContratoAtivo(codigo, nome, adesao, cpf) {
-            document.getElementById('val-contrato').innerText = codigo;
-            document.getElementById('val-nome').innerText = nome;
-            document.getElementById('val-adesao').innerText = adesao;
-            document.getElementById('val-cpf').innerText = cpf;
+            document.getElementById('val-contrato').innerText = codigo || '-';
+            document.getElementById('val-nome').innerText = nome || '-';
+            document.getElementById('val-adesao').innerText = adesao || '-';
+            document.getElementById('val-cpf').innerText = formatarCPF(cpf);
 
-            // Recarrega as informações das outras abas baseadas no novo contrato
             carregarDependentes(codigo);
             carregarFinanceiro(codigo);
         }
 
         function selecionarContrato(codigo, cli_nome, adesao, cpf) {
-            // 1. Aplica as informações na tela
             aplicarContratoAtivo(codigo, cli_nome, adesao, cpf);
-            
-            // 2. Muda para a aba "Contrato"
             switchTab(null, 'dados');
 
-            // 3. NOVO: Atualiza a marcação "Atual" na aba "Outros"
             todosContratos.forEach(c => {
-                // Marca -1 no que foi clicado, e 0 nos demais
                 c.CLI_SELECIONADO = (c.CLI_CODIGO === codigo) ? -1 : 0; 
             });
-            // Re-renderiza a lista para aplicar o efeito visual na hora
             renderizarListaContratos(todosContratos);
 
-            // 4. Notifica o Android
             if (typeof Android !== 'undefined' && Android.SelecionarContrato) {
                 Android.SelecionarContrato(codigo, cli_nome, adesao, cpf); 
-            } else {
-                console.log("Teste Navegador - Contrato alterado para: " + codigo);
             }
         }
 
-        // ==========================================
-        // ABAS DEPENDENTES E FINANCEIRO
-        // ==========================================
         function carregarDependentes(codigo) {
             const container = document.getElementById('container-dependentes');
             container.innerHTML = ''; 
-            console.log("Carregando dependentes para contrato: " + codigo);
             let listaDeps = [];
             
             if (typeof Android === 'undefined') {
@@ -725,25 +696,15 @@
             }
             
             if (listaDeps.length === 0) {
-                container.innerHTML = '<p style="color: #888; font-size: 14px; text-align: center; padding: 20px;">Nenhum dependente encontrado para este contrato.</p>';
+                container.innerHTML = '<p style="color: #888; font-size: 14px; text-align: center; padding: 20px;">Nenhum dependente encontrado.</p>';
                 return;
             }
 
             listaDeps.forEach(dep => {
-                // Adaptação: lê a chave do Mock ou a chave real do Banco de Dados (SQLite)
-                const valNome = dep.nome || dep.DEP_NOME || 'Sem nome';
-                const valGrau = dep.grau || dep.DEP_GRAU_PARENTESCO || 'Não informado';
-                const valIdade = dep.idade || ''; 
-                
-                // Como o banco não tem status para o dependente, assumimos 'ATIVO'
+                const valNome = dep.DEP_NOME || 'Sem nome';
+                const valGrau = dep.DEP_GRAU_PARENTESCO || 'Não informado';
                 const valStatus = (dep.status || 'ATIVO').toUpperCase(); 
-
                 const isAtivo = valStatus === 'ATIVO';
-                const statusColor = isAtivo ? '#2e7d32' : '#c62828';
-                const statusBg = isAtivo ? '#e8f5e9' : '#ffebee';
-                
-                // Só mostra o campo Idade se a informação existir
-                const htmlIdade = valIdade ? `<span class="dep-idade">Idade: ${valIdade}</span>` : '';
 
                 const html = `
                 <div class="dependent-card">
@@ -751,9 +712,8 @@
                     <div class="dep-info">
                         <span class="dep-nome">${valNome}</span>
                         <span class="dep-grau">Grau: ${valGrau}</span>
-                        ${htmlIdade}
                     </div>
-                    <div style="font-size: 10px; font-weight: bold; padding: 4px 8px; border-radius: 10px; background-color: ${statusBg}; color: ${statusColor};">${valStatus}</div>
+                    <div style="font-size: 10px; font-weight: bold; padding: 4px 8px; border-radius: 10px; background-color: ${isAtivo ? '#e8f5e9' : '#ffebee'}; color: ${isAtivo ? '#2e7d32' : '#c62828'};">${valStatus}</div>
                 </div>`;
                 container.innerHTML += html;
             });
@@ -766,11 +726,8 @@
                 const dadosStr = Android.getParcelas(codigo);
                 if (dadosStr) parcelasAtuais = JSON.parse(dadosStr);
             }
-
-            // Resetando UI de Filtros para "Todos"
             document.querySelectorAll('.badge').forEach(b => b.className = 'badge');
             document.querySelector('.badge[onclick*="todos"]').classList.add('active-dark');
-
             renderizarLista('todos');
         }
 
@@ -779,24 +736,11 @@
             const emptyState = document.getElementById('emptyStateParcelas');
             container.innerHTML = '';
             
-            let contador = 0;
-            let totalPago = 0;
-            let totalAberto = 0;
-            let temVencido = false;
+            let totalPago = 0, totalAberto = 0, temVencido = false, contador = 0;
 
             parcelasAtuais.forEach(p => {
-                // 1. Adaptação para ler tanto do Mock quanto do Android real
-                const valID = p.id || p.CX_PARCELA || p.CX_ID || '';
-                const valVencimento = p.vencimento || p.CX_VENCIMENTO || '';
-                const valStatus = (p.status || p.CX_STATUS || '').toLowerCase();
-                const valPgto = p.pgto || p.CX_PAGAMENTO || '';
-                const valMes = p.mes || p.CX_MES || '';
-                const valAno = p.ano || p.CX_ANO || '';
-                
-                // 2. Proteção contra o erro do "replace" (Lê 'valor' ou 'CX_VALOR')
-                let strValor = p.valor || p.CX_VALOR || "0";
-                strValor = String(strValor); // Garante que o tipo seja sempre texto (String)
-                
+                const valStatus = (p.CX_STATUS || '').toLowerCase();
+                const strValor = String(p.CX_VALOR || "0");
                 const valorNumerico = parseFloat(strValor.replace(',', '.')) || 0;
 
                 if (valStatus === 'pago') totalPago += valorNumerico;
@@ -808,98 +752,52 @@
                 if (filtro !== 'todos' && valStatus !== filtro) return;
                 contador++;
 
-                let iconClass = '', iconBg = '', textClass = '', valorPago = '0,00 R$', valorAberto = '0,00 R$', extraInfo = '';
+                const valorFmt = valorNumerico.toLocaleString('pt-br', { minimumFractionDigits: 2 });
+                let iconClass = 'fa-solid fa-hourglass-half', iconBg = 'bg-blue', textClass = 'text-blue';
 
-                // Formata o valor já validado para exibição no card
-                const valorFormatado = valorNumerico.toLocaleString('pt-br', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                if (valStatus === 'vencido') { iconClass = 'fa-solid fa-circle-exclamation'; iconBg = 'bg-red'; textClass = 'text-red'; }
+                else if (valStatus === 'pago') { iconClass = 'fa-solid fa-check'; iconBg = 'bg-green'; textClass = 'text-green'; }
 
-                if (valStatus === 'aberto') {
-                    iconClass = 'fa-solid fa-hourglass-half'; iconBg = 'bg-blue'; textClass = 'text-blue'; valorAberto = `${valorFormatado} R$`;
-                } else if (valStatus === 'vencido') {
-                    iconClass = 'fa-solid fa-circle-exclamation'; iconBg = 'bg-red'; textClass = 'text-red'; valorAberto = `${valorFormatado} R$`;
-                } else if (valStatus === 'pago') {
-                    iconClass = 'fa-solid fa-check'; iconBg = 'bg-green'; textClass = 'text-green'; valorPago = `${valorFormatado} R$`;
-                    extraInfo = `<span class="parcela-vcto" style="display:block">Pgto.: ${valPgto}</span>`;
-                }
-
-                const cardHTML = `
-                <div class="parcela-card" onclick="window.location.href='parcela.html'">
+                container.innerHTML += `
+                <div class="parcela-card">
                     <div class="card-main">
                         <div class="status-icon ${iconBg}"><i class="${iconClass}"></i></div>
                         <div class="card-details">
-                            <span class="parcela-title">PARCELA: ${valID}</span>
-                            <span class="parcela-vcto">Vcto.: ${valVencimento}</span>
-                            ${extraInfo}
+                            <span class="parcela-title">PARCELA: ${p.CX_NUMERO}</span>
+                            <span class="parcela-vcto">Vcto.: ${p.CX_VENCIMENTO}</span>
                         </div>
                         <div class="card-values">
-                            <span class="val-label">Pago</span> <span class="val-text ${valStatus === 'pago' ? 'text-green' : ''}">${valorPago}</span>
-                            <span class="val-label">Em Aberto</span> <span class="val-text val-total ${textClass}">${valorAberto}</span>
+                            <span class="val-label">${valStatus === 'pago' ? 'Pago' : 'Aberto'}</span> 
+                            <span class="val-text val-total ${textClass}">${valorFmt} R$</span>
                         </div>
-                        <i class="fa-solid fa-chevron-right arrow-right"></i>
-                    </div>
-                    <div class="card-footer">
-                        <i class="fa-regular fa-comment-dots"></i> MÊS: ${valMes} ANO: ${valAno}
                     </div>
                 </div>`;
-                container.innerHTML += cardHTML;
             });
 
-            // Atualiza resumo
             document.getElementById('resumo-pago').innerText = totalPago.toLocaleString('pt-br', { style: 'currency', currency: 'BRL' });
             document.getElementById('resumo-aberto').innerText = totalAberto.toLocaleString('pt-br', { style: 'currency', currency: 'BRL' });
             
             const situacaoTxt = document.getElementById('resumo-situacao');
-            if (temVencido) {
-                situacaoTxt.innerText = "Pendente";
-                situacaoTxt.style.color = "red";
-            } else if (parcelasAtuais.length > 0) {
-                situacaoTxt.innerText = "Regular";
-                situacaoTxt.style.color = "green";
-            } else {
-                situacaoTxt.innerText = "Sem Lançamentos";
-                situacaoTxt.style.color = "#888";
-            }
+            situacaoTxt.innerText = temVencido ? "Pendente" : "Regular";
+            situacaoTxt.style.color = temVencido ? "red" : "green";
 
             emptyState.style.display = (contador === 0) ? 'block' : 'none';
         }
 
         function filtrar(tipo, elemento) {
             document.querySelectorAll('.badge').forEach(b => b.className = 'badge');
-            if (tipo === 'todos') elemento.classList.add('active-dark');
-            if (tipo === 'aberto') elemento.classList.add('active-blue');
-            if (tipo === 'vencido') elemento.classList.add('active-red');
-            if (tipo === 'pago') elemento.classList.add('active-green');
+            elemento.classList.add(tipo === 'todos' ? 'active-dark' : (tipo === 'aberto' ? 'active-blue' : (tipo === 'vencido' ? 'active-red' : 'active-green')));
             renderizarLista(tipo);
         }
 
-        // ==========================================
-        // UTILITÁRIOS
-        // ==========================================
         function switchTab(event, tabId) {
             document.querySelectorAll('.tab-item').forEach(tab => tab.classList.remove('active'));
             document.querySelectorAll('.content-section').forEach(section => section.classList.remove('active'));
             
-            if(event && event.currentTarget) {
-                event.currentTarget.classList.add('active');
-            } else {
-                document.querySelector(`.tab-item[onclick*="${tabId}"]`).classList.add('active');
-            }
+            if(event) event.currentTarget.classList.add('active');
+            else document.querySelector(`.tab-item[onclick*="${tabId}"]`).classList.add('active');
+            
             document.getElementById(tabId).classList.add('active');
-
-            // Quando o usuário muda de aba, força recarregar os dados do contrato atualmente exibido
-            const codigoAtual = document.getElementById('val-contrato')?.innerText;
-            if (!codigoAtual || codigoAtual === '...') return;
-
-            if (tabId === 'dependentes') {
-                carregarDependentes(codigoAtual);
-            }
-            if (tabId === 'financeiro') {
-                carregarFinanceiro(codigoAtual);
-            }
-            if (tabId === 'outros') {
-                // garante que, ao voltar para "Outros", o contrato selecionado apareça como "Atual"
-                renderizarListaContratos(todosContratos);
-            }
         }
     </script>
 </body>
