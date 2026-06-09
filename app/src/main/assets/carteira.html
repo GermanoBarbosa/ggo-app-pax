@@ -147,7 +147,7 @@
             <div class="card-body">
                 <div class="data-group">
                     <span class="label">Nome do Titular</span>
-                    <span class="value-large"  id="cli_nome">IVONEIDE S. NAVA ARAUJO</span>
+                    <span class="value-large"  id="cli_nome">-</span>
                 </div>
 
                 <div class="card-row">
@@ -211,27 +211,32 @@
         const nomeElement = document.getElementById('cli_nome');
         if (nomeElement) {
             nomeElement.textContent = nome || '';
+        } else {
+            codigoElement.textContent = '-';
         }
         
         // Preenche o elemento com id "cli_codigo"
         const codigoElement = document.getElementById('cli_codigo');
         if (codigoElement) {
             codigoElement.textContent = codigo || '';
+        } else {
+            codigoElement.textContent = '-';
         }
 
         const cli_planoElement = document.getElementById('cli_plano');
         if (cli_planoElement) {
             cli_planoElement.textContent = cli_plano || '';
+        } else {
+            codigoElement.textContent = '-';
         }
         
         const cli_cidadeElement = document.getElementById('cli_cidade');
         if (cli_cidadeElement) {
             cli_cidadeElement.textContent = cli_cidade || '';
+        } else {
+            codigoElement.textContent = '-';
         }        
 
-        
-
-        
     }
 
     function toggleRotation() {

@@ -453,7 +453,7 @@
                         <i class="fa-solid fa-calendar-check"></i>
                         <div class="info-text">
                             <span class="label">Data de Adesão</span>
-                            <span class="value" id="val-adesao">15/04/2021</span>
+                            <span class="value" id="val-adesao">-</span>
                         </div>
                     </div>
                 </div>
@@ -674,18 +674,20 @@
             });
         }
 
-        function aplicarContratoAtivo(codigo, nome) {
+        function aplicarContratoAtivo(codigo, nome, adesao, cpf) {
             document.getElementById('val-contrato').innerText = codigo;
             document.getElementById('val-nome').innerText = nome;
-            
+            document.getElementById('val-adesao').innerText = adesao;
+            document.getElementById('val-cpf').innerText = cpf;
+
             // Recarrega as informações das outras abas baseadas no novo contrato
             carregarDependentes(codigo);
             carregarFinanceiro(codigo);
         }
 
-        function selecionarContrato(codigo, cli_nome) {
+        function selecionarContrato(codigo, cli_nome, adesao, cpf) {
             // 1. Aplica as informações na tela
-            aplicarContratoAtivo(codigo, cli_nome);
+            aplicarContratoAtivo(codigo, cli_nome, adesao, cpf);
             
             // 2. Muda para a aba "Contrato"
             switchTab(null, 'dados');
@@ -700,7 +702,7 @@
 
             // 4. Notifica o Android
             if (typeof Android !== 'undefined' && Android.SelecionarContrato) {
-                Android.SelecionarContrato(codigo, cli_nome); 
+                Android.SelecionarContrato(codigo, cli_nome, adesao, cpf); 
             } else {
                 console.log("Teste Navegador - Contrato alterado para: " + codigo);
             }

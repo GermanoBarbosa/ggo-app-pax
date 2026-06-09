@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -32,6 +33,7 @@ import androidx.fragment.app.FragmentActivity
 import br.com.paxuniao.app.ui.theme.ClientesTheme
 import com.google.android.gms.auth.api.phone.SmsRetriever
 import com.google.android.gms.common.api.CommonStatusCodes
+import com.google.common.reflect.Reflection.getPackageName
 import java.util.regex.Pattern
 
 class MainActivity : FragmentActivity() {
@@ -162,6 +164,18 @@ class WebAppInterface(
 
     var resposta =""
     var code_valid = true
+
+    @JavascriptInterface
+    fun getAppVersion(): String? {
+        return try {
+            val packageInfo = activity.packageManager.getPackageInfo(activity.packageName, 0)
+            packageInfo.versionName
+        } catch (e: Exception) {
+            e.printStackTrace()
+            "0.0.0"
+        }
+    }
+
 
     @JavascriptInterface
     fun enviarCodigoRecuperacao(cpfLimpo: String, tipo: String, index: Int) {
@@ -531,7 +545,7 @@ class WebAppInterface(
         // 2. Precisamos rodar a chamada do JS na Thread Principal (UI Thread)
         webView.post {
             // 3. Montamos a string da função JS: preencherDadosClienteFromObj('valor1', 'valor2')
-            val jsCommand = "preencherDadosCliente('$codigoContrato', '$clienteAtivo')"
+            val jsCommand = "preencherDadosCliente('$codigoContrato', '$clienteAtivo','','')"
 
             webView.evaluateJavascript(jsCommand, null)
         }
