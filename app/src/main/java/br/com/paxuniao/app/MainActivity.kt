@@ -4,7 +4,6 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -33,7 +32,6 @@ import androidx.fragment.app.FragmentActivity
 import br.com.paxuniao.app.ui.theme.ClientesTheme
 import com.google.android.gms.auth.api.phone.SmsRetriever
 import com.google.android.gms.common.api.CommonStatusCodes
-import com.google.common.reflect.Reflection.getPackageName
 import java.util.regex.Pattern
 
 class MainActivity : FragmentActivity() {
@@ -551,18 +549,41 @@ class WebAppInterface(
     //carteira.html
     @android.webkit.JavascriptInterface
     fun carrega_carteira() {
-        var codigoContrato = dados.getString("CONTRATO_ATIVO");
-        var clienteAtivo = dados.getString("CLIENTE_ATIVO");
-        var cli_plano ="SUPER LUXO ESPECIAL";
-        var cli_cidade = "SÃO PEDRO DO PIAUÍ";
+        val codigo = dados.getString("CONTRATO_ATIVO")
+        val jsonStr = dados.getJsonCliente(codigo)
+        try {
+            val arr = org.json.JSONArray(jsonStr)
+            if (arr.length() > 0) {
+                val obj = arr.getJSONObject(0)
+                val nome = obj.optString("CLI_NOME", "")
+                val cidade = obj.optString("CLI_CIDADE", "")
+                val tipoPlano = obj.optInt("CLI_TIPOPLANO", 1)
+                val plano = ""
+                if (BuildConfig.FLAVOR=="unipax") {
+                    val plano = when (tipoPlano) {
+                        1 -> "SAFIRA"
+                        2 -> "RUBI"
+                        3 -> "ESMERALDA"
+                        4 -> "DIAMANTE"
+                        else -> "-" // Valor padrão caso venha um código diferente
+                    }
+                } else {
+                    val plano = when (tipoPlano) {
+                        1 -> "SIMPLES"
+                        2 -> "LUXO"
+                        3 -> "SUPER LUXO"
+                        4 -> "SUPER LUXO ESPECIAL"
+                        else -> "-" // Valor padrão caso venha um código diferente
+                    }
+                }
 
-
-        // 2. Precisamos rodar a chamada do JS na Thread Principal (UI Thread)
-        webView.post {
-            // 3. Montamos a string da função JS: preencherDadosClienteFromObj('valor1', 'valor2')
-            val jsCommand = "preencherDadosCliente('$codigoContrato', '$clienteAtivo', '$cli_plano', '$cli_cidade')"
-
-            webView.evaluateJavascript(jsCommand, null)
+                webView.post {
+                    val jsCommand = "preencherDadosCliente('$codigo', '$nome', '$plano', '$cidade')"
+                    webView.evaluateJavascript(jsCommand, null)
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 

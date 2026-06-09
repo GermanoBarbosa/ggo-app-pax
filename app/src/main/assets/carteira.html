@@ -159,11 +159,12 @@
                         <span class="label">Plano</span>
                         <span class="value-small" id="cli_plano">-</span>
                     </div>
+
+                </div>
                     <div class="data-group">
                         <span class="label">Cidade</span>
                         <span class="value-small" id="cli_cidade">-</span>
                     </div>
-                </div>
             </div>
         </div>
 
@@ -200,43 +201,17 @@
 </div>
 
 <script>
-
     document.addEventListener('DOMContentLoaded', function() {            
-        Android.carrega_carteira();            
+        if (typeof Android !== 'undefined' && Android.carrega_carteira) {
+            Android.carrega_carteira();            
+        }
     });        
 
-
     function preencherDadosCliente(codigo, nome, cli_plano, cli_cidade) {
-        // Preenche o elemento com id "cli_nome"
-        const nomeElement = document.getElementById('cli_nome');
-        if (nomeElement) {
-            nomeElement.textContent = nome || '';
-        } else {
-            codigoElement.textContent = '-';
-        }
-        
-        // Preenche o elemento com id "cli_codigo"
-        const codigoElement = document.getElementById('cli_codigo');
-        if (codigoElement) {
-            codigoElement.textContent = codigo || '';
-        } else {
-            codigoElement.textContent = '-';
-        }
-
-        const cli_planoElement = document.getElementById('cli_plano');
-        if (cli_planoElement) {
-            cli_planoElement.textContent = cli_plano || '';
-        } else {
-            codigoElement.textContent = '-';
-        }
-        
-        const cli_cidadeElement = document.getElementById('cli_cidade');
-        if (cli_cidadeElement) {
-            cli_cidadeElement.textContent = cli_cidade || '';
-        } else {
-            codigoElement.textContent = '-';
-        }        
-
+        document.getElementById('cli_nome').textContent = nome || '-';
+        document.getElementById('cli_codigo').textContent = codigo || '-';
+        document.getElementById('cli_plano').textContent = cli_plano || '-';
+        document.getElementById('cli_cidade').textContent = cli_cidade || '-';        
     }
 
     function toggleRotation() {
@@ -244,25 +219,15 @@
         const btns = document.getElementById('actionBtns');
         const icon = btns.querySelector('.fa-expand') || btns.querySelector('.fa-compress');
 
-        // Alterna a classe de rotação do cartão
         card.classList.toggle('rotated');
 
-        // Lógica visual do botão e ajuste de margem para evitar sobreposição
         if (card.classList.contains('rotated')) {
-            // Se virou: muda ícone para comprimir e AUMENTA a margem dos botões
-            icon.classList.remove('fa-expand');
-            icon.classList.add('fa-compress');
+            if(icon.classList.contains('fa-expand')) icon.classList.replace('fa-expand', 'fa-compress');
             btns.querySelector('.btn-label').innerText = "Voltar";
-            
-            // Empurra os botões para baixo para não ficar em cima do cartão gigante
             btns.style.marginTop = "150px"; 
         } else {
-            // Se voltou ao normal: restaura ícone e margem original
-            icon.classList.remove('fa-compress');
-            icon.classList.add('fa-expand');
+            if(icon.classList.contains('fa-compress')) icon.classList.replace('fa-compress', 'fa-expand');
             btns.querySelector('.btn-label').innerText = "Expandir";
-            
-            // Restaura a margem padrão definida no CSS
             btns.style.marginTop = "60px";
         }
     } 

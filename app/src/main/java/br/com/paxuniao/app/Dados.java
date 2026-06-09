@@ -208,8 +208,8 @@ public class Dados {
         try {
             BancoDados.beginTransaction();
             String sql = "INSERT OR REPLACE INTO TB_CLI " +
-                    "(CLI_LOGIN_SEQ, CLI_CODIGO, CLI_NOME, CLI_ENDERECO, CLI_ENDERECON, CLI_CIDADE, CLI_UF, CLI_CEP, CLI_TIPOPLANO, CLI_CLI_DATA_TRANS, CLI_SITUACAO, CLI_DATAPLANO, CLI_CPF) " +
-                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                    "(CLI_LOGIN_SEQ, CLI_CODIGO, CLI_NOME, CLI_ENDERECO, CLI_ENDERECON, CLI_CIDADE, CLI_UF, CLI_CEP, CLI_TIPOPLANO, CLI_CLI_DATA_TRANS, CLI_SITUACAO, CLI_DATAPLANO, CLI_CPF, CLI_TIPOPLANO) " +
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
             BancoDados.execSQL(sql, new Object[]{
                     loginSeq,
@@ -224,7 +224,8 @@ public class Dados {
                     cliJson.optString("CLI_CLI_DATA_TRANS", ""),
                     cliJson.optString("CLI_SITUACAO", "ATIVO"),
                     cliJson.optString("CLI_DATAPLANO", ""),
-                    cliJson.optString("CLI_CPF", "")
+                    cliJson.optString("CLI_CPF", ""),
+                    cliJson.optString("CLI_TIPOPLANO", "")
             });
             BancoDados.setTransactionSuccessful();
         } catch (Exception e) { Log.e(TAG, "Erro sync cliente", e); } finally { BancoDados.endTransaction(); }
