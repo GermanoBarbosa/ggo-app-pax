@@ -173,7 +173,7 @@ public class Dados {
     }
 
     public String getJsonParcelas(String cliCodigo) {
-        return obterJsonGenerico("SELECT * FROM TB_CX WHERE CX_CLI_CODIGO = '" + cliCodigo + "' ORDER BY CX_VENCIMENTO DESC");
+        return obterJsonGenerico("SELECT * FROM TB_CX WHERE CX_CLI_CODIGO = '" + cliCodigo + "' ORDER BY CX_NUMERO DESC");
     }
 
     public String getJsonConveniados() {

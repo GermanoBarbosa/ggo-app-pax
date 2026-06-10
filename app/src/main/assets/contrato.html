@@ -491,7 +491,7 @@
                         </div>
                     </div>
                     <div style="display: flex; justify-content: space-between; margin-top: 15px; padding-top: 10px; border-top: 1px dashed #ddd;">
-                        <div class="info-text">
+                        <div class="info-text" style="display: none;">
                             <span class="label">Total Pago</span>
                             <span class="value" id="resumo-pago" style="color: green;">R$ 0,00</span>
                         </div>
@@ -562,7 +562,6 @@
         const mockFinanceiro = {
             "0055-A1": [
                 { id: 26, vencimento: '28/05/2026', valor: '60,00', status: 'aberto', mes: 'MAIO', ano: 2026 },
-                { id: 23, vencimento: '28/02/2026', valor: '60,00', status: 'pago', pgto: '20/02/2026', mes: 'FEVEREIRO', ano: 2026 }
             ]
         };
 
