@@ -746,21 +746,34 @@ class WebAppInterface(
 
                                 }
 
-                                // Sincroniza os Conveniados por último, pois são gerais (não dependem do cliente)
-                                apiClient.buscarConveniados(accessToken, session, cpf, object : ApiClient.ApiCallback {
-                                    override fun onSuccess(convResp: org.json.JSONObject) {
-                                        val convArray = convResp.optJSONArray("dados") ?: org.json.JSONArray()
-                                        dados.sincronizarConveniadosApi(convArray)
-                                        onComplete() // Todos os dados baixados com sucesso!
-                                    }
+                                if (BuildConfig.FLAVOR == "unipax") {
+                                    dados.sincronizarConveniadosApi_Apaga();
+                                    onComplete()
 
-                                    override fun onError(error: String) {
-                                        // Se der erro nos conveniados, loga, mas deixa o usuário logar mesmo assim
-                                        Log.e("SYNC", "Falha ao sincronizar conveniados: $error")
-                                        onComplete()
-                                    }
-                                })
+                                } else {
+                                    // Sincroniza os Conveniados por último, pois são gerais (não dependem do cliente)
+                                    apiClient.buscarConveniados(
+                                        accessToken,
+                                        session,
+                                        cpf,
+                                        object : ApiClient.ApiCallback {
+                                            override fun onSuccess(convResp: org.json.JSONObject) {
+                                                val convArray = convResp.optJSONArray("dados")
+                                                    ?: org.json.JSONArray()
+                                                dados.sincronizarConveniadosApi(convArray)
+                                                onComplete() // Todos os dados baixados com sucesso!
+                                            }
 
+                                            override fun onError(error: String) {
+                                                // Se der erro nos conveniados, loga, mas deixa o usuário logar mesmo assim
+                                                Log.e(
+                                                    "SYNC",
+                                                    "Falha ao sincronizar conveniados: $error"
+                                                )
+                                                onComplete()
+                                            }
+                                        })
+                                }
                             }
 
                             override fun onError(error: String) {

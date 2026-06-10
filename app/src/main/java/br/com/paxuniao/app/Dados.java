@@ -257,6 +257,14 @@ public class Dados {
         } catch (Exception e) { Log.e(TAG, "Erro sync parcelas", e); } finally { BancoDados.endTransaction(); }
     }
 
+    public void sincronizarConveniadosApi_Apaga() {
+        try {
+            BancoDados.beginTransaction();
+            BancoDados.execSQL("DELETE FROM TB_CONVENIADOS");
+            BancoDados.setTransactionSuccessful();
+        } catch (Exception e) { Log.e(TAG, "Erro sync conv", e); } finally { BancoDados.endTransaction(); }
+    }
+
     public void sincronizarConveniadosApi(JSONArray conveniadosArray) {
         try {
             BancoDados.beginTransaction();
