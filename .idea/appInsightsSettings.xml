@@ -23,8 +23,8 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="br.com.paxuniao.app.jardim" />
-                  <option name="mobileSdkAppId" value="1:223374162912:android:8663a6335a8dd86de9c985" />
+                  <option name="appId" value="br.com.paxuniao.app.nacionalpax" />
+                  <option name="mobileSdkAppId" value="1:223374162912:android:bedccafcb326834de9c985" />
                   <option name="projectId" value="erros-app-pax" />
                   <option name="projectNumber" value="223374162912" />
                 </ConnectionSetting>

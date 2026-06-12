@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Informações - PAX União</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script src="./comum.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        body {
+            background-color: #fdfaf5;
+            display: flex;
+            justify-content: center;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 412px;
+            height: 100vh;
+            background-color: white;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            color: #1a237e;
+        }
+
+        .top-bar i {
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        .version-text {
+            font-size: 12px;
+            color: #999;
+        }
+
+        .brand-section {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            background: linear-gradient(to bottom, #ffffff, #f0f4f8);
+        }
+
+        .company-name {
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        .logo-img {
+            width: 100px;
+            height: auto;
+            object-fit: contain;
+        }
+
+        .cnpj {
+            font-size: 13px;
+            color: #777;
+            margin-top: 4px;
+        }
+
+        .search-box {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 10px 16px;
+            padding: 10px 14px;
+            background: #f0f2f5;
+            border-radius: 25px;
+            border: 1px solid #e0e4e8;
+        }
+
+        .search-box i {
+            color: #999;
+            font-size: 14px;
+        }
+
+        .search-box input {
+            flex: 1;
+            border: none;
+            background: transparent;
+            outline: none;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .search-box input::placeholder {
+            color: #aaa;
+        }
+
+        .info-content {
+            flex: 1;
+            padding: 16px;
+            overflow-y: auto;
+            padding-bottom: 90px;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        .info-card {
+            background-color: #f8f9fa;
+            border-radius: 15px;
+            padding: 14px;
+            margin-bottom: 12px;
+            border: 1px solid #eef2f7;
+            animation: fadeIn 0.3s;
+        }
+
+        .city-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .city-header i {
+            font-size: 16px;
+            color: var(--primary);
+            background: white;
+            padding: 8px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        .city-name {
+            font-size: 16px;
+            font-weight: 700;
+            color: #1a237e;
+        }
+
+        .info-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin-top: 6px;
+            font-size: 14px;
+            color: #444;
+        }
+
+        .info-row i {
+            width: 16px;
+            font-size: 14px;
+            color: var(--primary);
+            margin-top: 2px;
+        }
+
+        .info-row a {
+            color: #1a237e;
+            text-decoration: none;
+        }
+
+        .badge {
+            display: inline-block;
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            margin-top: 6px;
+            font-weight: 500;
+        }
+
+        .badge-posto {
+            background: #e3f2fd;
+            color: #1565c0;
+        }
+
+        .badge-contato {
+            background: #fff3e0;
+            color: #e65100;
+        }
+
+        .badge-fechamento {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .social-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .social-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            font-size: 11px;
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .social-btn i {
+            font-size: 24px;
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            max-width: 412px;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            border-top: 1px solid #eee;
+            background: white;
+            z-index: 1000;
+        }
+
+        .nav-item {
+            text-align: center;
+            color: #888;
+            font-size: 11px;
+            flex: 1;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .nav-icon-container {
+            padding: 8px 20px;
+            border-radius: 12px;
+            margin-bottom: 2px;
+            transition: 0.2s;
+        }
+
+        .nav-item i {
+            font-size: 18px;
+        }
+    </style>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        h2 {
+            text-align: center;
+            margin-bottom: 0px;
+            color: var(--primary);
+        }
+    </style>
+
+</head>
+
+<body>
+    <div class="app-container">
+        <div class="top-bar">
+            <i class="fa-solid fa-arrow-left" onclick="window.history.back()"></i>
+            <i class="fa-solid fa-right-from-bracket" onclick="navega_sair()"></i>
+        </div>
+
+        <div class="brand-section">
+            <div class="logo-placeholder">
+                <img src="./logo.png" alt="Logo" class="logo-img">
+            </div>
+            <h2 class="company-name"></h2>
+        </div>
+
+        <div style="text-align: center; padding: 5px 0; font-size: 16px; font-weight: bold;  color: var(--primary);">
+            Unidades
+        </div>
+
+        <div class="search-box">
+            <i class="fa-solid fa-search"></i>
+            <input type="text" id="searchInput" placeholder="Buscar cidade..." oninput="filterCities()">
+        </div>
+
+        <div class="info-content" id="infoContent">
+
+            <div class="info-card">
+                <div class="city-header">
+                    <i class="fa-solid fa-store"></i>
+                    <span class="city-name">Arari</span>
+                </div>
+                <div class="info-row">
+                    <i class="fa-solid fa-location-dot"></i>
+                    <span>R. Padre José da Cunha D'Eça, n° 161</span>
+                </div>
+                <div class="info-row">
+                    <i class="fa-brands fa-whatsapp"></i>
+                    <a href="https://wa.me/559981148076" target="_blank">(99) 9 8114-8076</a>
+                </div>
+                <span class="badge badge-posto">Posto de São Mateus</span>
+            </div>
+
+            <div class="info-card">
+                <div class="city-header">
+                    <i class="fa-solid fa-store"></i>
+                    <span class="city-name">Bacabal</span>
+                </div>
+                <div class="info-row">
+                    <i class="fa-solid fa-location-dot"></i>
+                    <span>R. Magalhães de Almeida, 646A</span>
+                </div>
+                <div class="info-row">
+                    <i class="fa-brands fa-whatsapp"></i>
+                    <a href="https://wa.me/559985350650" target="_blank">(99) 9 8535-0650</a>
+                </div>
+            </div>
+
+            <div class="info-card">
+                <div class="city-header">
+                    <i class="fa-solid fa-store"></i>
+                    <span class="city-name">Barra do Corda</span>
+                </div>
+                <div class="info-row">
+                    <i class="fa-solid fa-location-dot"></i>
+                    <span>Rodovia BR 226, S/N</span>
+                </div>
+                <div class="info-row">
+                    <i class="fa-brands fa-whatsapp"></i>
+                    <a href="https://wa.me/559985392663" target="_blank">(99) 9 8539-2663</a>
+                </div>
+            </div>
+
+            <div class="info-card">
+                <div class="city-header">
+                    <i class="fa-solid fa-store"></i>
+                    <span class="city-name">Codó</span>
+                </div>
+                <div class="info-row">
+                    <i class="fa-solid fa-location-dot"></i>
+                    <span>Av. Augusto Teixeira, 2078, Centro</span>
+                </div>
+                <div class="info-row">
+                    <i class="fa-brands fa-whatsapp"></i>
+                    <a href="https://wa.me/559981288011" target="_blank">(99) 9 8128-8011 / 9 8544-6334</a>
+                </div>
+            </div>
+
+            <div class="info-card">
+                <div class="city-header">
+                    <i class="fa-solid fa-store"></i>
+                    <span class="city-name">Coroatá</span>
+                </div>
+                <div class="info-row">
+                    <i class="fa-solid fa-location-dot"></i>
+                    <span>R. Quintino Bocaiúva, n°202, Centro</span>
+                </div>
+                <div class="info-row">
+                    <i class="fa-brands fa-whatsapp"></i>
+                    <a href="https://wa.me/559991742938" target="_blank">(99) 99174-2938</a>
+                </div>
+            </div>
+
+            <div class="info-card">
+                <div class="city-header">
+                    <i class="fa-solid fa-store"></i>
+                    <span class="city-name">Esperantinópolis</span>
+                </div>
+                <div class="info-row">
+                    <i class="fa-solid fa-location-dot"></i>
+                    <span>Rua Genésio Carvalho, n°. 1.222, Centro</span>
+                </div>
+                <div class="info-row">
+                    <i class="fa-brands fa-whatsapp"></i>
+                    <a href="https://wa.me/559984855244" target="_blank">(99) 9 8485-5244</a>
+                </div>
+                <span class="badge badge-posto">Posto de Igarapé Grande</span>
+            </div>
+
+            <div class="info-card">
+                <div class="city-header">
+                    <i class="fa-solid fa-store"></i>
+                    <span class="city-name">Governador Eugênio Barros</span>
+                </div>
+                <div class="info-row">
+                    <i class="fa-solid fa-location-dot"></i>
+                    <span>Rua 15 de Novembro, n°11 A, Centro</span>
+                </div>
+                <div class="info-row">
+                    <i class="fa-brands fa-whatsapp"></i>
+                    <a href="https://wa.me/559985495055" target="_blank">(99) 9 8549-5055</a>
+                </div>
+                <span class="badge badge-posto">Posto de Presidente Dutra</span>
+            </div>
+
+            <div class="info-card">
+                <div class="city-header">
+                    <i class="fa-solid fa-store"></i>
+                    <span class="city-name">Igarapé Grande</span>
+                </div>
+                <div class="info-row">
+                    <i class="fa-solid fa-location-dot"></i>
+                    <span>R. Leopoldina Vale, n°03 A</span>
+                </div>
+                <div class="info-row">
+                    <i class="fa-brands fa-whatsapp"></i>
+                    <a href="https://wa.me/559984855244" target="_blank">(99) 9 8485-5244</a>
+                </div>                
+            </div>
+
+            <div class="info-card">
+                <div class="city-header">
+                    <i class="fa-solid fa-store"></i>
+                    <span class="city-name">Lago da Pedra</span>
+                </div>
+                <div class="info-row">
+                    <i class="fa-solid fa-location-dot"></i>
+                    <span>R. Cel. Pedro Borgêa, 289</span>
+                </div>
+                <div class="info-row">
+                    <i class="fa-brands fa-whatsapp"></i>
+                    <a href="https://wa.me/559985407018" target="_blank">(99) 9 8540-7018</a>
+                </div>
+            </div>
+
+            <div class="info-card">
+                <div class="city-header">
+                    <i class="fa-solid fa-store"></i>
+                    <span class="city-name">Lago Verde</span>
+                </div>
+                <div class="info-row">
+                    <i class="fa-solid fa-location-dot"></i>
+                    <span>Av. Osmar Rodrigues Lima, S/N</span>
+                </div>
+                <div class="info-row">
+                    <i class="fa-brands fa-whatsapp"></i>
+                    <a href="https://wa.me/559985350650" target="_blank">(99) 9 8535-0650</a>
+                </div>
+                <span class="badge badge-posto">Posto de Bacabal</span>
+            </div>
+
+            <div class="info-card">
+                <div class="city-header">
+                    <i class="fa-solid fa-store"></i>
+                    <span class="city-name">Lima Campos</span>
+                </div>
+                <div class="info-row">
+                    <i class="fa-solid fa-location-dot"></i>
+                    <span>R. Newton Bello, S/N</span>
+                </div>
+                <div class="info-row">
+                    <i class="fa-brands fa-whatsapp"></i>
+                    <a href="https://wa.me/559981290512" target="_blank">(99) 9 8129-0512</a>
+                </div>
+                <span class="badge badge-posto">Posto de Pedreiras</span>
+            </div>
+
+            <div class="info-card">
+                <div class="city-header">
+                    <i class="fa-solid fa-store"></i>
+                    <span class="city-name">Pedreiras</span>
+                </div>
+                <div class="info-row">
+                    <i class="fa-solid fa-location-dot"></i>
+                    <span>Rua Miguel Atta, 27, Apt B</span>
+                </div>
+                <div class="info-row">
+                    <i class="fa-brands fa-whatsapp"></i>
+                    <a href="https://wa.me/559981290512" target="_blank">(99) 9 8129-0512</a>
+                </div>
+            </div>
+
+            <div class="info-card">
+                <div class="city-header">
+                    <i class="fa-solid fa-store"></i>
+                    <span class="city-name">Peritoró</span>
+                </div>
+                <div class="info-row">
+                    <i class="fa-solid fa-location-dot"></i>
+                    <span>R. Francisco Matos, S/N</span>
+                </div>
+                <div class="info-row">
+                    <i class="fa-brands fa-whatsapp"></i>
+                    <a href="https://wa.me/559991742938" target="_blank">(99) 99174-2938</a>
+                </div>
+                <span class="badge badge-posto">Posto de Coroatá</span>
+            </div>
+
+            <div class="info-card">
+                <div class="city-header">
+                    <i class="fa-solid fa-store"></i>
+                    <span class="city-name">Pio XII</span>
+                </div>
+                <div class="info-row">
+                    <i class="fa-solid fa-location-dot"></i>
+                    <span>Av. JK, 1020/1140, José Burnett, S/N</span>
+                </div>
+                <div class="info-row">
+                    <i class="fa-brands fa-whatsapp"></i>
+                    <a href="https://wa.me/5598992229210" target="_blank">(98) 9 9222-9210</a>
+                </div>                
+            </div>
+
+            <div class="info-card">
+                <div class="city-header">
+                    <i class="fa-solid fa-store"></i>
+                    <span class="city-name">Pirapemas</span>
+                </div>
+                <div class="info-row">
+                    <i class="fa-solid fa-location-dot"></i>
+                    <span>Av. Antônio Ribeiro, S/N, Centro</span>
+                </div>
+                <div class="info-row">
+                    <i class="fa-brands fa-whatsapp"></i>
+                    <a href="https://wa.me/559985409270" target="_blank">(99) 9 8540-9270</a>
+                </div>
+            </div>
+
+            <div class="info-card">
+                <div class="city-header">
+                    <i class="fa-solid fa-store"></i>
+                    <span class="city-name">Poção de Pedras</span>
+                </div>
+                <div class="info-row">
+                    <i class="fa-solid fa-location-dot"></i>
+                    <span>Av. Israel Gonçalves, 31</span>
+                </div>
+                <div class="info-row">
+                    <i class="fa-brands fa-whatsapp"></i>
+                    <a href="https://wa.me/559984855244" target="_blank">(99) 9 8485-5244</a>
+                </div>
+                <span class="badge badge-posto">Posto de Igarapé Grande</span>
+            </div>
+
+            <div class="info-card">
+                <div class="city-header">
+                    <i class="fa-solid fa-store"></i>
+                    <span class="city-name">Presidente Dutra</span>
+                </div>
+                <div class="info-row">
+                    <i class="fa-solid fa-location-dot"></i>
+                    <span>R. Coronel Vitorino Lucena, n° 358, Centro</span>
+                </div>
+                <div class="info-row">
+                    <i class="fa-brands fa-whatsapp"></i>
+                    <a href="https://wa.me/559985495055" target="_blank">(99) 9 8549-5055</a>
+                </div>
+            </div>
+
+            <div class="info-card">
+                <div class="city-header">
+                    <i class="fa-solid fa-store"></i>
+                    <span class="city-name">Paulo Ramos</span>
+                </div>
+                <div class="info-row">
+                    <i class="fa-solid fa-location-dot"></i>
+                    <span>Av. Mário Andreazza, n°1010, Centro</span>
+                </div>
+                <div class="info-row">
+                    <i class="fa-brands fa-whatsapp"></i>
+                    <a href="https://wa.me/559988384174" target="_blank">(99) 9 8838-4174</a>
+                </div>
+                <span class="badge badge-posto">Posto de Vitorino Freire</span>
+            </div>
+
+            <div class="info-card">
+                <div class="city-header">
+                    <i class="fa-solid fa-store"></i>
+                    <span class="city-name">Santa Inês</span>
+                </div>
+                <div class="info-row">
+                    <i class="fa-solid fa-location-dot"></i>
+                    <span>Av. Castelo Branco, 2532</span>
+                </div>
+                <div class="info-row">
+                    <i class="fa-brands fa-whatsapp"></i>
+                    <a href="https://wa.me/559984221024" target="_blank">(99) 9 8422-1024</a>
+                </div>
+            </div>
+
+            <div class="info-card">
+                <div class="city-header">
+                    <i class="fa-solid fa-store"></i>
+                    <span class="city-name">São Luiz Gonzaga</span>
+                </div>
+                <div class="info-row">
+                    <i class="fa-solid fa-location-dot"></i>
+                    <span>Pç. da Bandeira, n°102</span>
+                </div>
+                <div class="info-row">
+                    <i class="fa-brands fa-whatsapp"></i>
+                    <a href="https://wa.me/559985350650" target="_blank">(99) 9 8535-0650</a>
+                </div>
+                <span class="badge badge-posto">Posto de Bacabal</span>
+            </div>
+
+            <div class="info-card">
+                <div class="city-header">
+                    <i class="fa-solid fa-store"></i>
+                    <span class="city-name">São Mateus</span>
+                </div>
+                <div class="info-row">
+                    <i class="fa-solid fa-location-dot"></i>
+                    <span>Av. Antônio Pereira Aragão, 1432, Centro</span>
+                </div>
+                <div class="info-row">
+                    <i class="fa-brands fa-whatsapp"></i>
+                    <a href="https://wa.me/559981148076" target="_blank">(99) 9 8114-8076</a>
+                </div>
+            </div>
+
+            <div class="info-card">
+                <div class="city-header">
+                    <i class="fa-solid fa-store"></i>
+                    <span class="city-name">Senador Alexandre Costa</span>
+                </div>
+                <div class="info-row">
+                    <i class="fa-solid fa-location-dot"></i>
+                    <span>Praça Tiradentes, S/N, Centro</span>
+                </div>
+                <div class="info-row">
+                    <i class="fa-brands fa-whatsapp"></i>
+                    <a href="https://wa.me/559985495055" target="_blank">(99) 9 8549-5055</a>
+                </div>
+                <span class="badge badge-posto">Posto de Presidente Dutra</span>
+            </div>
+
+            <div class="info-card">
+                <div class="city-header">
+                    <i class="fa-solid fa-store"></i>
+                    <span class="city-name">Timbiras</span>
+                </div>
+                <div class="info-row">
+                    <i class="fa-solid fa-location-dot"></i>
+                    <span>R. Urbano Santos, S/N</span>
+                </div>
+                <div class="info-row">
+                    <i class="fa-brands fa-whatsapp"></i>
+                    <a href="https://wa.me/5598991133151" target="_blank">(99) 9 9113-3151</a>
+                </div>
+            </div>
+
+            <div class="info-card">
+                <div class="city-header">
+                    <i class="fa-solid fa-store"></i>
+                    <span class="city-name">Tuntum</span>
+                </div>
+                <div class="info-row">
+                    <i class="fa-solid fa-location-dot"></i>
+                    <span>R. São Raimundo, 588, Centro</span>
+                </div>
+                <div class="info-row">
+                    <i class="fa-brands fa-whatsapp"></i>
+                    <a href="https://wa.me/559985495055" target="_blank">(99) 9 8549-5055</a>
+                </div>
+                <span class="badge badge-posto">Posto de Presidente Dutra</span>
+            </div>
+
+            <div class="info-card">
+                <div class="city-header">
+                    <i class="fa-solid fa-store"></i>
+                    <span class="city-name">Vitorino Freire</span>
+                </div>
+                <div class="info-row">
+                    <i class="fa-solid fa-location-dot"></i>
+                    <span>R. Gonçalves Dias, 11, Centro</span>
+                </div>
+                <div class="info-row">
+                    <i class="fa-brands fa-whatsapp"></i>
+                    <a href="https://wa.me/559988384174" target="_blank">(99) 9 8838-4174</a>
+                </div>
+            </div>
+
+        </div>
+
+        <nav class="bottom-nav">
+            <div class="nav-item" onclick="navega_contrato()">
+                <div class="nav-icon-container"><i class="fa-solid fa-file-contract"></i></div>
+                <span>Contrato</span>
+            </div>
+            <div class="nav-item" onclick="navega_carteira()">
+                <div class="nav-icon-container"><i class="fa-solid fa-address-card"></i></div>
+                <span>Carteirinha</span>
+            </div>
+            <div class="nav-item" onclick="navega_conveios()">
+                <div class="nav-icon-container"><i class="fa-solid fa-hospital-user"></i></div>
+                <span>Conveniados</span>
+            </div>
+            <div class="nav-item active" onclick="navega_informacoes()">
+                <div class="nav-icon-container"><i class="fa-solid fa-circle-info"></i></div>
+                <span>Informações</span>
+            </div>
+        </nav>
+    </div>
+    <script>
+        function filterCities() {
+            var input = document.getElementById('searchInput');
+            var filter = input.value.toLowerCase();
+            var cards = document.getElementById('infoContent').getElementsByClassName('info-card');
+            for (var i = 0; i < cards.length; i++) {
+                var name = cards[i].querySelector('.city-name');
+                if (name) {
+                    cards[i].style.display = name.textContent.toLowerCase().indexOf(filter) > -1 ? '' : 'none';
+                }
+            }
+        }
+    </script>
+</body>
+
+</html>

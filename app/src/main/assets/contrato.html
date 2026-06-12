@@ -589,6 +589,16 @@
             return limpo.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
         }
 
+        function formatarDataBrasileira(data) {
+            if (!data) return '-';
+            const valor = String(data).trim();
+            const match = valor.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+            if (match) {
+                return `${match[3]}/${match[2]}/${match[1]}`;
+            }
+            return valor;
+        }
+
         function chamarAndroid(metodo) {
             if (typeof Android !== 'undefined' && Android[metodo]) {
                 Android[metodo]();
@@ -762,8 +772,8 @@
                     <div class="card-main">
                         <div class="status-icon ${iconBg}"><i class="${iconClass}"></i></div>
                         <div class="card-details">
-                            <span class="parcela-title">PARCELA: ${p.CX_NUMERO}</span>
-                            <span class="parcela-vcto">Vcto.: ${p.CX_VENCIMENTO}</span>
+                            <span class="parcela-title">PARCELA</span>
+                            <span class="parcela-vcto">Vcto.: ${formatarDataBrasileira(p.CX_VENCIMENTO)}</span>
                         </div>
                         <div class="card-values">
                             <span class="val-label">${valStatus === 'pago' ? 'Pago' : 'Aberto'}</span> 

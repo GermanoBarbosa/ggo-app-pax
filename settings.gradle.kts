@@ -19,6 +19,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Clientes"
+rootProject.name = "ggo-app-pax"
 include(":app")
  
