@@ -194,8 +194,34 @@ public class Dados {
     public class DadosJson {
         public String getContratosJson() {
             String codigoContrato = getString("CONTRATO_ATIVO");
+
+            // 1. Definimos a lógica do CASE SQL baseada no Flavor
+            String sqlPlano;
+
+            if ("unipax".equals(BuildConfig.FLAVOR)) {
+                sqlPlano = "CASE CLI_TIPOPLANO " +
+                        "  WHEN 1 THEN 'SAFIRA' " +
+                        "  WHEN 2 THEN 'RUBI' " +
+                        "  WHEN 3 THEN 'ESMERALDA' " +
+                        "  WHEN 4 THEN 'DIAMANTE' " +
+                        "  ELSE 'PLANO PADRÃO' " +
+                        "END";
+            } else {
+                sqlPlano = "CASE CLI_TIPOPLANO " +
+                        "  WHEN 1 THEN 'SIMPLES' " +
+                        "  WHEN 2 THEN 'LUXO' " +
+                        "  WHEN 3 THEN 'SUPER LUXO' " +
+                        "  WHEN 4 THEN 'SUPER LUXO ESPECIAL' " +
+                        "  ELSE 'PLANO PADRÃO' " +
+                        "END";
+            }
+
+            // 2. Montamos a query completa usando a variável sqlPlano
             String sql = "SELECT CLI_CODIGO, CLI_NOME, CLI_SITUACAO, CLI_DATAPLANO, CLI_CPF, " +
-                    "CASE WHEN CLI_CODIGO = '" + codigoContrato +"' THEN -1 ELSE 0 END AS CLI_SELECIONADO FROM TB_CLI ORDER BY CLI_NOME ASC";
+                    "CASE WHEN CLI_CODIGO = '" + codigoContrato + "' THEN -1 ELSE 0 END AS CLI_SELECIONADO, " +
+                    sqlPlano + " AS CLI_PLANO " + // Aqui entra a conversão
+                    "FROM TB_CLI " +
+                    "ORDER BY CLI_NOME ASC";
             return obterJsonGenerico(sql);
         }
     }

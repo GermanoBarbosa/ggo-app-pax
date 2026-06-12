@@ -456,6 +456,13 @@
                             <span class="value" id="val-adesao">-</span>
                         </div>
                     </div>
+                    <div class="info-item">
+                        <i class="fa-solid fa-file-lines"></i>
+                        <div class="info-text">
+                            <span class="label">Plano</span>
+                            <span class="value" id="val-plano">-</span>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="info-card">
@@ -611,7 +618,9 @@
             try {
                 if (typeof Android === 'undefined') {
                     todosContratos = [
-                        { "CLI_CODIGO": "0055-A1", "CLI_NOME": "RAFAEL (TESTE)", "CLI_SITUACAO": "ATIVO", "CLI_DATAPLANO": "20/03/2015", "CLI_CPF": "64293840397", "CLI_SELECIONADO": -1 }
+                        { "CLI_CODIGO": "0055-A1", "CLI_NOME": "RAFAEL (TESTE)", "CLI_SITUACAO": "ATIVO",
+                         "CLI_DATAPLANO": "20/03/2015", "CLI_CPF": "64293840397", "CLI_SELECIONADO": -1 
+                        ,"CLI_PLANO": "Plano Top" }
                     ];
                 } else if (Android.getListaContratos) {
                     const dadosString = Android.getListaContratos();
@@ -628,7 +637,8 @@
                         contratoSelecionado.CLI_CODIGO, 
                         contratoSelecionado.CLI_NOME,
                         contratoSelecionado.CLI_DATAPLANO,
-                        contratoSelecionado.CLI_CPF
+                        contratoSelecionado.CLI_CPF,
+                        contratoSelecionado.CLI_PLANO
                     );
                 }
             } catch (e) {
@@ -652,7 +662,7 @@
                 const statusClass = (contrato.CLI_SITUACAO.toUpperCase() === 'ATIVO') ? 'status-ativo' : 'status-inativo';
                 const isSelecionado = (contrato.CLI_SELECIONADO == -1);
                 const cardClass = isSelecionado ? 'contract-card selected-card' : 'contract-card';
-                const badgeAtual = isSelecionado ? '<span style="font-size: 10px; background: #1a237e; color: white; padding: 2px 6px; border-radius: 8px;">Atual</span>' : '';
+                const badgeAtual = isSelecionado ? '<span style="font-size: 10px; background: #1a237e; color: white; padding: 2px 6px; border-radius: 8px;">Selecionado</span>' : '';
 
                 const cardHTML = `
                 <div class="${cardClass}" onclick="selecionarContrato('${contrato.CLI_CODIGO}','${contrato.CLI_NOME}', '${contrato.CLI_DATAPLANO}', '${contrato.CLI_CPF}')">
@@ -668,18 +678,19 @@
             });
         }
 
-        function aplicarContratoAtivo(codigo, nome, adesao, cpf) {
+        function aplicarContratoAtivo(codigo, nome, adesao, cpf, plano) {
             document.getElementById('val-contrato').innerText = codigo || '-';
             document.getElementById('val-nome').innerText = nome || '-';
-            document.getElementById('val-adesao').innerText = adesao || '-';
+            document.getElementById('val-adesao').innerText = formatarDataBrasileira(adesao) || '-';
             document.getElementById('val-cpf').innerText = formatarCPF(cpf);
+            document.getElementById('val-plano').innerText = plano || '-';
 
             carregarDependentes(codigo);
             carregarFinanceiro(codigo);
         }
 
-        function selecionarContrato(codigo, cli_nome, adesao, cpf) {
-            aplicarContratoAtivo(codigo, cli_nome, adesao, cpf);
+        function selecionarContrato(codigo, cli_nome, adesao, cpf, plano) {
+            aplicarContratoAtivo(codigo, cli_nome, adesao, cpf, plano);
             switchTab(null, 'dados');
 
             todosContratos.forEach(c => {

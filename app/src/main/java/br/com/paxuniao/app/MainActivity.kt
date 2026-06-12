@@ -516,6 +516,8 @@ class WebAppInterface(
      */
     @JavascriptInterface
     fun getListaContratos(): String {
+
+
         return dados.jsonHelper.contratosJson
     }
 
@@ -1007,7 +1009,45 @@ fun WebViewScreen(url: String, modifier: Modifier = Modifier, activity: MainActi
                     ViewGroup.LayoutParams.MATCH_PARENT,
                     ViewGroup.LayoutParams.MATCH_PARENT
                 )
-                webViewClient = WebViewClient() // Abre links dentro do próprio app
+                //webViewClient = WebViewClient() // Abre links dentro do próprio app
+                webViewClient = object : WebViewClient() {
+
+                    // Para Androids mais recentes
+                    override fun shouldOverrideUrlLoading(
+                        view: WebView?,
+                        request: android.webkit.WebResourceRequest?
+                    ): Boolean {
+                        val url = request?.url.toString()
+                        return handleExternalLinks(url, context) ?: super.shouldOverrideUrlLoading(view, request)
+                    }
+
+                    // Para compatibilidade com Androids antigos
+                    @Deprecated("Deprecated in Java")
+                    override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
+                        return handleExternalLinks(url, context) ?: super.shouldOverrideUrlLoading(view, url)
+                    }
+
+                    // Função auxiliar para processar os links do WhatsApp
+                    private fun handleExternalLinks(url: String?, context: Context): Boolean? {
+                        if (url != null && (url.startsWith("https://wa.me/") || url.startsWith("whatsapp://") || url.startsWith("https://api.whatsapp.com/"))) {
+                            try {
+                                val intent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse(url))
+                                // Adiciona a flag caso a activity precise ser iniciada de um contexto fora de activity normal
+                                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                context.startActivity(intent)
+                                return true // Dizemos à WebView: "Nós já lidamos com esse link, não faça nada"
+                            } catch (e: Exception) {
+                                android.widget.Toast.makeText(
+                                    context,
+                                    "WhatsApp não está instalado neste dispositivo.",
+                                    android.widget.Toast.LENGTH_SHORT
+                                ).show()
+                                return true
+                            }
+                        }
+                        return null // Retorna nulo para os outros links seguirem o fluxo normal do app
+                    }
+                }
 
                 settings.apply {
                     javaScriptEnabled = true // Ativa o JavaScript
