@@ -13,7 +13,7 @@ android {
         applicationId = "br.com.paxuniao.app"
         minSdk = 24
         targetSdk = 36
-        versionCode = 22
+        versionCode = 23
         versionName = "26.8.$versionCode"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -113,4 +113,5 @@ dependencies {
 
     implementation(platform("com.google.firebase:firebase-bom:34.14.0"))
     implementation("com.google.firebase:firebase-analytics")
+    implementation("com.google.firebase:firebase-messaging")
 }

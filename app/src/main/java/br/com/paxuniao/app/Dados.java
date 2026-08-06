@@ -30,24 +30,27 @@ public class Dados {
         Log.i(TAG, "Dados abrindo...");
         ctx=nctx;
         boolean inserir_dados=false;
-        java.io.File dbFile = ctx.getDatabasePath("dados.db");
-        if (!dbFile.exists()) {
-            inserir_dados=true;
+
+        if (BancoDados == null || !BancoDados.isOpen()) {
+            java.io.File dbFile = ctx.getDatabasePath("dados.db");
+            if (!dbFile.exists()) {
+                inserir_dados=true;
+            }
+
+            BancoDados = ctx.openOrCreateDatabase("dados.db",  Context.MODE_PRIVATE,	null);
+            BancoLog = ctx.openOrCreateDatabase("log.db",Context.MODE_PRIVATE, null);
+
+            String sql = "CREATE TABLE IF NOT EXISTS TBSYS (S_KEY VARCHAR(20) PRIMARY KEY, S_TIPO INTEGER, S_TXT_60 VARCHAR(60));";
+            BancoDados.execSQL(sql);
+
+            String sql4 = "CREATE TABLE IF NOT EXISTS TBLOG2(LOG_TXT VARCHAR(1000))";
+            BancoLog.execSQL(sql4);
+
+            String sql5 = "CREATE TABLE IF NOT EXISTS TBERRO( ERR_SEQ INTEGER PRIMARY KEY AUTOINCREMENT, ERR_DTHR VARCHAR(25), ERR_TXT VARCHAR(1000), ERR_DRHRMAIL VARCHAR(25) ) ";
+            BancoLog.execSQL(sql5);
+
+            update_db();
         }
-
-        BancoDados = ctx.openOrCreateDatabase("dados.db",  Context.MODE_PRIVATE,	null);
-        BancoLog = ctx.openOrCreateDatabase("log.db",Context.MODE_PRIVATE, null);
-
-        String sql = "CREATE TABLE IF NOT EXISTS TBSYS (S_KEY VARCHAR(20) PRIMARY KEY, S_TIPO INTEGER, S_TXT_60 VARCHAR(60));";
-        BancoDados.execSQL(sql);
-
-        String sql4 = "CREATE TABLE IF NOT EXISTS TBLOG2(LOG_TXT VARCHAR(1000))";
-        BancoLog.execSQL(sql4);
-
-        String sql5 = "CREATE TABLE IF NOT EXISTS TBERRO( ERR_SEQ INTEGER PRIMARY KEY AUTOINCREMENT, ERR_DTHR VARCHAR(25), ERR_TXT VARCHAR(1000), ERR_DRHRMAIL VARCHAR(25) ) ";
-        BancoLog.execSQL(sql5);
-
-        update_db();
 
         if (inserir_dados) {
             inserirDadosExemplo();

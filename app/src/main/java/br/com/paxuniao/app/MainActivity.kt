@@ -60,6 +60,9 @@ class MainActivity : FragmentActivity() {
         }
     }
 
+    private val requestNotificationPermission =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { /* resultado ignorado */ }
+
     private val updateStateListener = object : InstallStateUpdatedListener {
         override fun onStateUpdate(state: InstallState) {
             if (state.installStatus() == InstallStatus.DOWNLOADED) {
@@ -163,6 +166,23 @@ class MainActivity : FragmentActivity() {
 
         appUpdateManager.registerListener(updateStateListener)
 
+        // Cria o canal de notificação (Android 8+) e solicita permissão (Android 13+)
+        NotificationHelper.criarCanal(this)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (!androidx.core.app.NotificationManagerCompat.from(this).areNotificationsEnabled()) {
+                requestNotificationPermission.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+            }
+        }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        appEmPrimeiroPlano = true
+    }
+
+    override fun onStop() {
+        super.onStop()
+        appEmPrimeiroPlano = false
     }
 
     override fun onDestroy() {
@@ -198,6 +218,23 @@ class MainActivity : FragmentActivity() {
 
     fun instalarAtualizacaoBaixada() {
         appUpdateManager.completeUpdate()
+    }
+
+    companion object {
+        @Volatile
+        var appEmPrimeiroPlano = false
+        @Volatile
+        var myWebViewRef: WebView? = null
+
+        fun enviarMensagemParaWebView(titulo: String, mensagem: String) {
+            val json = org.json.JSONObject()
+                .put("titulo", titulo)
+                .put("mensagem", mensagem)
+                .toString()
+            myWebViewRef?.post {
+                myWebViewRef?.evaluateJavascript("exibirMensagemPush($json);", null)
+            }
+        }
     }
 }
 
@@ -786,6 +823,9 @@ class WebAppInterface(
                                 dados.putString("SESSION_TOKEN", sessionToken)
                                 dados.putString("CPF_ATIVO", cpf) // Útil para requisições futuras
 
+                                // Registra o token FCM do dispositivo no servidor
+                                FcmRegistro.registrar(activity)
+
                                 // Lógica do Checkbox "Lembrar Senha"
                                 if (lembrar) {
                                     dados.putString("SAVED_CPF", cpf)
@@ -830,16 +870,20 @@ class WebAppInterface(
                     }
 
                     override fun onError(error: String) {
+                        Log.e("LOGIN", "Erro ao chamar /app/login: $error")
                         webView.post {
-                            webView.evaluateJavascript("showLoginError('Erro de conexão ao servidor.');", null)
+                            val safeError = error.replace("\\", "\\\\").replace("'", "\\'")
+                            webView.evaluateJavascript("showLoginError('Erro de conexão ao servidor: $safeError');", null)
                         }
                     }
                 })
             }
 
             override fun onError(error: String) {
+                Log.e("LOGIN", "Erro ao gerar token: $error")
                 webView.post {
-                    webView.evaluateJavascript("showLoginError('Falha de segurança ao conectar.');", null)
+                    val safeError = error.replace("\\", "\\\\").replace("'", "\\'")
+                    webView.evaluateJavascript("showLoginError('Falha de segurança ao conectar: $safeError');", null)
                 }
             }
         })
@@ -875,6 +919,9 @@ class WebAppInterface(
                     val sessionToken = dados.getString("SESSION_TOKEN")
 
                     if (!cpf.isNullOrEmpty() && !sessionToken.isNullOrEmpty()) {
+                        // Registra o token FCM do dispositivo no servidor
+                        FcmRegistro.registrar(activity)
+
                         // 1. Mostra o loading no HTML chamando o JS
                         webView.post {
                             webView.evaluateJavascript("toggleLoading(true); document.getElementById('loading-text').innerText = 'Sincronizando...';", null)
@@ -1102,6 +1149,7 @@ fun WebViewScreen(url: String, modifier: Modifier = Modifier, activity: MainActi
             WebView(context).apply {
                 webViewRef = this
                 activity.myWebView = this
+                MainActivity.myWebViewRef = this
                 layoutParams = ViewGroup.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT,
                     ViewGroup.LayoutParams.MATCH_PARENT

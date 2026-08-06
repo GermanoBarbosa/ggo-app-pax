@@ -12,6 +12,8 @@ import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.Response;
 
+import java.util.concurrent.TimeUnit;
+
 public class ApiClient {
 
     private static final String BASE_URL = Parametros.BASE_URL;
@@ -22,7 +24,11 @@ public class ApiClient {
     private Handler mainHandler;
 
     public ApiClient() {
-        client = new OkHttpClient();
+        client = new OkHttpClient.Builder()
+                .connectTimeout(Parametros.TIMEOUT, TimeUnit.SECONDS)
+                .readTimeout(Parametros.TIMEOUT, TimeUnit.SECONDS)
+                .writeTimeout(Parametros.TIMEOUT, TimeUnit.SECONDS)
+                .build();
         mainHandler = new Handler(Looper.getMainLooper());
     }
 
@@ -213,6 +219,15 @@ public class ApiClient {
         @Override
         public void onResponse(Call call, Response response) throws IOException {
 
+            if (!response.isSuccessful()) {
+                final int code = response.code();
+                response.close();
+                mainHandler.post(() ->
+                        callback.onError("HTTP " + code)
+                );
+                return;
+            }
+
             String responseBody = response.body().string();
 
             mainHandler.post(() -> {
@@ -344,6 +359,32 @@ public class ApiClient {
 
             Request request = new Request.Builder()
                     .url(BASE_URL + "/app/conveniados") // Ajuste a rota se necessário
+                    .post(body)
+                    .addHeader("Content-Type", "application/json")
+                    .build();
+
+            client.newCall(request).enqueue(new DefaultCallback(callback));
+        } catch (Exception e) {
+            callback.onError(e.getMessage());
+        }
+    }
+
+    // ===============================
+    // /app/register-device (Registro do token FCM)
+    // ===============================
+    public void registrarDevice(String accessToken, String session, String cpf, String fcmToken, ApiCallback callback) {
+        try {
+            JSONObject json = new JSONObject();
+            json.put("access_token", accessToken);
+            json.put("session", session);
+            json.put("cpf", cpf);
+            json.put("fcm_token", fcmToken);
+            json.put("flavor", BuildConfig.FLAVOR);
+
+            RequestBody body = RequestBody.create(json.toString(), JSON);
+
+            Request request = new Request.Builder()
+                    .url(BASE_URL + "/app/register-device")
                     .post(body)
                     .addHeader("Content-Type", "application/json")
                     .build();
