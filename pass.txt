@@ -9,3 +9,7 @@ xF#S0vs1n7$hhsJQ
 
 C:\Users\Suporte\AppData\Local\Android\Sdk
 keytool -list -v -keystore caminho/para/seu/arquivo.jks
+
+Usuário enviado ao Google para testes
+725 357 100 21
+931332
