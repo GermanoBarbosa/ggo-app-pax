@@ -552,16 +552,28 @@ class WebAppInterface(
     //carteira.html
     @android.webkit.JavascriptInterface
     fun carrega_carteira() {
-        val codigo = dados.getString("CONTRATO_ATIVO")
-        val jsonStr = dados.getJsonCliente(codigo)
         try {
-            val arr = org.json.JSONArray(jsonStr)
+            var codigo = dados.getString("CONTRATO_ATIVO")
+            var jsonStr = if (codigo.isNullOrBlank()) dados.getJsonPrimeiroCliente() else dados.getJsonCliente(codigo)
+
+            var arr = org.json.JSONArray(jsonStr)
+            if (arr.length() == 0) {
+                jsonStr = dados.getJsonPrimeiroCliente()
+                arr = org.json.JSONArray(jsonStr)
+            }
+
             if (arr.length() > 0) {
                 val obj = arr.getJSONObject(0)
                 val nome = obj.optString("CLI_NOME", "")
                 val cidade = obj.optString("CLI_CIDADE", "")
                 val tipoPlano = obj.optInt("CLI_TIPOPLANO", 1)
-                
+
+                val codigoFinal = obj.optString("CLI_CODIGO", "")
+                if (codigoFinal.isNotEmpty()) {
+                    dados.putString("CONTRATO_ATIVO", codigoFinal)
+                    dados.putString("CLIENTE_ATIVO", nome)
+                }
+
                 val plano = if (BuildConfig.FLAVOR == "unipax") {
                     when (tipoPlano) {
                         1 -> "SAFIRA"
@@ -581,7 +593,7 @@ class WebAppInterface(
                 }
 
                 webView.post {
-                    val jsCommand = "preencherDadosCliente('$codigo', '$nome', '$plano', '$cidade')"
+                    val jsCommand = "preencherDadosCliente('$codigoFinal', '$nome', '$plano', '$cidade')"
                     webView.evaluateJavascript(jsCommand, null)
                 }
             }
@@ -872,6 +884,7 @@ class WebAppInterface(
                     val totalClientes = dadosArray.length()
                     var clientesProcessados = 0
                     var ocorreuErro = false // Flag para evitar chamar onError múltiplas vezes
+                    var primeiroCodigo = ""
 
                     dados.apagacliantes()
 
@@ -889,6 +902,7 @@ class WebAppInterface(
 
                         // 2. Salva o cliente no banco local (Assumindo LOGIN_SEQ = 1)
                         dados.sincronizarClienteApi(1, cliJson)
+                        if (primeiroCodigo.isEmpty()) primeiroCodigo = cliCodigo
 
                         // 3. Busca e salva os Dependentes aninhados na mesma resposta
                         val depArray = cliJson.optJSONArray("dependentes") ?: org.json.JSONArray()
@@ -905,7 +919,9 @@ class WebAppInterface(
                                 // === VERIFICAÇÃO DE CONCLUSÃO ===
                                 clientesProcessados++
                                 if (clientesProcessados == totalClientes && !ocorreuErro) {
-
+                                    if (dados.getString("CONTRATO_ATIVO").isNullOrBlank() && primeiroCodigo.isNotEmpty()) {
+                                        dados.putString("CONTRATO_ATIVO", primeiroCodigo)
+                                    }
                                 }
 
                                 if (BuildConfig.FLAVOR == "unipax") {

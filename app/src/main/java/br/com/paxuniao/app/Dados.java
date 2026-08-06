@@ -168,6 +168,10 @@ public class Dados {
         return obterJsonGenerico("SELECT * FROM TB_CLI WHERE CLI_CODIGO = '" + cliCodigo + "'");
     }
 
+    public String getJsonPrimeiroCliente() {
+        return obterJsonGenerico("SELECT * FROM TB_CLI ORDER BY CLI_CODIGO ASC LIMIT 1");
+    }
+
     public String getJsonDependentes(String cliCodigo) {
         return obterJsonGenerico("SELECT * FROM TB_DEPENDENTES WHERE DEP_CLI_CODIGO = '" + cliCodigo + "'");
     }
