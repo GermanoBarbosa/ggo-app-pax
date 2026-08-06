@@ -13,7 +13,7 @@ android {
         applicationId = "br.com.paxuniao.app"
         minSdk = 24
         targetSdk = 36
-        versionCode = 21
+        versionCode = 22
         versionName = "26.8.$versionCode"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -108,6 +108,8 @@ dependencies {
     implementation(libs.androidx.biometric)
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("com.google.android.gms:play-services-auth-api-phone:18.0.2")
+
+    implementation(libs.play.app.update)
 
     implementation(platform("com.google.firebase:firebase-bom:34.14.0"))
     implementation("com.google.firebase:firebase-analytics")

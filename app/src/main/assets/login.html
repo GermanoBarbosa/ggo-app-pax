@@ -43,6 +43,13 @@
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
         .version-text { text-align: center; padding: 20px; color: black; font-size: 13px; }
+
+        /* Banner de atualização */
+        .update-banner { display: none; background-color: #322fd3; color: white; padding: 14px 16px; align-items: center; justify-content: space-between; gap: 10px; font-size: 13px; }
+        .update-banner strong { display: block; margin-bottom: 3px; font-size: 14px; }
+        .update-banner .btn-update { background: white; color: #322fd3; border: none; border-radius: 8px; padding: 8px 14px; font-weight: bold; cursor: pointer; font-size: 13px; white-space: nowrap; }
+        .update-banner .btn-update:active { opacity: 0.85; }
+        .update-banner .btn-later { color: rgba(255,255,255,0.85); cursor: pointer; white-space: nowrap; padding: 8px 4px; }
     </style>
     <link rel="stylesheet" href="styles.css">
     <style>
@@ -57,6 +64,17 @@
 </div>
 
 <div class="mobile-container">
+    <div class="update-banner" id="updateBanner">
+        <div>
+            <strong id="updateBannerTitle">Nova versão disponível</strong>
+            <span id="updateBannerText">Atualize o app pela Play Store para aproveitar as novidades.</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <button class="btn-update" id="btnUpdateAction" onclick="atualizarApp()">Atualizar</button>
+            <span class="btn-later" id="btnUpdateLater" onclick="fecharBannerAtualizacao()">Agora não</span>
+        </div>
+    </div>
+
     <div class="header">
         <div class="logo-placeholder"></div>
     </div>
@@ -106,6 +124,11 @@
             if (Android.getAppVersion) {
                 const version = Android.getAppVersion();
                 document.getElementById('appVersion').innerText = "Versão " + version;
+            }
+
+            // Verifica se existe atualização disponível na Play Store
+            if (Android.verificarAtualizacao) {
+                Android.verificarAtualizacao();
             }
 
             const cpfSalvo = Android.getSavedCpf();
@@ -171,6 +194,43 @@
         const errorDiv = document.getElementById('loginError');
         errorDiv.innerText = msg;
         errorDiv.style.display = 'block';
+    }
+
+    // Chamado pelo Android quando há atualização disponível na Play Store
+    function mostrarAtualizacaoDisponivel() {
+        const banner = document.getElementById('updateBanner');
+        if (!banner) return;
+        document.getElementById('updateBannerTitle').innerText = 'Nova versão disponível';
+        document.getElementById('updateBannerText').innerText = 'Atualize o app pela Play Store para aproveitar as novidades.';
+        document.getElementById('btnUpdateAction').innerText = 'Atualizar';
+        document.getElementById('btnUpdateLater').style.display = '';
+        banner.style.display = 'flex';
+    }
+
+    // Chamado pelo Android quando a atualização já foi baixada e pode ser instalada
+    function mostrarInstalarAtualizacao() {
+        const banner = document.getElementById('updateBanner');
+        if (!banner) return;
+        document.getElementById('updateBannerTitle').innerText = 'Atualização baixada';
+        document.getElementById('updateBannerText').innerText = 'Instale a nova versão para continuar recebendo melhorias.';
+        document.getElementById('btnUpdateAction').innerText = 'Instalar';
+        document.getElementById('btnUpdateAction').onclick = function () {
+            if (typeof Android !== 'undefined' && Android.instalarAtualizacao) {
+                Android.instalarAtualizacao();
+            }
+        };
+        document.getElementById('btnUpdateLater').style.display = 'none';
+        banner.style.display = 'flex';
+    }
+
+    function fecharBannerAtualizacao() {
+        document.getElementById('updateBanner').style.display = 'none';
+    }
+
+    function atualizarApp() {
+        if (typeof Android !== 'undefined' && Android.atualizarApp) {
+            Android.atualizarApp();
+        }
     }
 
     function fazerLogin() {

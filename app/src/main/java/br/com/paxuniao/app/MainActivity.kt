@@ -15,6 +15,7 @@ import android.webkit.WebViewClient
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
 import androidx.compose.foundation.layout.fillMaxSize
@@ -33,6 +34,14 @@ import androidx.fragment.app.FragmentActivity
 import br.com.paxuniao.app.ui.theme.ClientesTheme
 import com.google.android.gms.auth.api.phone.SmsRetriever
 import com.google.android.gms.common.api.CommonStatusCodes
+import com.google.android.play.core.appupdate.AppUpdateManager
+import com.google.android.play.core.appupdate.AppUpdateManagerFactory
+import com.google.android.play.core.appupdate.AppUpdateOptions
+import com.google.android.play.core.install.InstallState
+import com.google.android.play.core.install.InstallStateUpdatedListener
+import com.google.android.play.core.install.model.AppUpdateType
+import com.google.android.play.core.install.model.InstallStatus
+import com.google.android.play.core.install.model.UpdateAvailability
 import java.util.regex.Pattern
 
 class MainActivity : FragmentActivity() {
@@ -40,6 +49,26 @@ class MainActivity : FragmentActivity() {
     private lateinit var dados: Dados
     var last_sig = ""
     var myWebView: WebView? = null // Variável para acessar a WebView no BroadcastReceiver
+
+    private val appUpdateManager: AppUpdateManager by lazy { AppUpdateManagerFactory.create(this) }
+
+    private val updateLauncher = registerForActivityResult(
+        ActivityResultContracts.StartIntentSenderForResult()
+    ) { result ->
+        if (result.resultCode != RESULT_OK) {
+            Log.i("UPDATE", "Download da atualização cancelado ou falhou")
+        }
+    }
+
+    private val updateStateListener = object : InstallStateUpdatedListener {
+        override fun onStateUpdate(state: InstallState) {
+            if (state.installStatus() == InstallStatus.DOWNLOADED) {
+                myWebView?.post {
+                    myWebView?.evaluateJavascript("mostrarInstalarAtualizacao();", null)
+                }
+            }
+        }
+    }
 
     private val smsVerificationReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
@@ -132,12 +161,43 @@ class MainActivity : FragmentActivity() {
             }
         }
 
+        appUpdateManager.registerListener(updateStateListener)
 
     }
 
     override fun onDestroy() {
         super.onDestroy()
+        appUpdateManager.unregisterListener(updateStateListener)
         unregisterReceiver(smsVerificationReceiver)
+    }
+
+    fun checarAtualizacao(callback: (Boolean) -> Unit) {
+        appUpdateManager.getAppUpdateInfo()
+            .addOnSuccessListener { info ->
+                val disponivel = info.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE &&
+                        info.isUpdateTypeAllowed(AppUpdateType.FLEXIBLE)
+                callback(disponivel)
+            }
+            .addOnFailureListener {
+                callback(false)
+            }
+    }
+
+    fun iniciarFluxoAtualizacao() {
+        appUpdateManager.getAppUpdateInfo()
+            .addOnSuccessListener { info ->
+                if (info.isUpdateTypeAllowed(AppUpdateType.FLEXIBLE)) {
+                    appUpdateManager.startUpdateFlowForResult(
+                        info,
+                        updateLauncher,
+                        AppUpdateOptions.defaultOptions(AppUpdateType.FLEXIBLE)
+                    )
+                }
+            }
+    }
+
+    fun instalarAtualizacaoBaixada() {
+        appUpdateManager.completeUpdate()
     }
 }
 
@@ -173,6 +233,27 @@ class WebAppInterface(
             e.printStackTrace()
             "0.0.0"
         }
+    }
+
+    @JavascriptInterface
+    fun verificarAtualizacao() {
+        (activity as? MainActivity)?.checarAtualizacao { disponivel ->
+            if (disponivel) {
+                webView.post {
+                    webView.evaluateJavascript("mostrarAtualizacaoDisponivel();", null)
+                }
+            }
+        }
+    }
+
+    @JavascriptInterface
+    fun atualizarApp() {
+        (activity as? MainActivity)?.iniciarFluxoAtualizacao()
+    }
+
+    @JavascriptInterface
+    fun instalarAtualizacao() {
+        (activity as? MainActivity)?.instalarAtualizacaoBaixada()
     }
 
 
