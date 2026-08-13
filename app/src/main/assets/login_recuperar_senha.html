@@ -128,7 +128,12 @@
         .btn-main:disabled {
             background-color: #ccc;
             cursor: not-allowed;
-        }        
+        }
+
+        /* Botão flutuante WhatsApp */
+        .whatsapp-float { position: fixed; bottom: 25px; right: 20px; width: 60px; height: 60px; background-color: #25d366; color: white; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 32px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); z-index: 900; text-decoration: none; transition: transform 0.2s; }
+        .whatsapp-float:hover { transform: scale(1.1); }
+        .whatsapp-float:active { transform: scale(0.95); }
     </style>
     <link rel="stylesheet" href="styles.css">
 </head>
@@ -168,6 +173,10 @@
         <a href="login.html" class="btn-back"><i class="fa-solid fa-chevron-left"></i> Voltar</a>
     </div>
 </div>
+
+<a class="whatsapp-float" href="https://wa.me/558694154924?text=Ol%C3%A1!%20Preciso%20de%20suporte%20no%20aplicativo." target="_blank" aria-label="Suporte via WhatsApp">
+    <i class="fa-brands fa-whatsapp"></i>
+</a>
 
 <script>
     // 1. Gerenciador de UI (Loading e Sucesso)
